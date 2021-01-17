@@ -16,4 +16,4 @@ jobs:
           sudo apt-get install -y gprbuild
           sudo apt-get install -y gnat
       - name: compile
-        run: make
+        run: make all
