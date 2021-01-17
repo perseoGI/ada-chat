@@ -1,13 +1,6 @@
-with Ada.Text_IO;
-with DiffieHellman;
+with Ada.Text_IO; use Ada.Text_IO;
 
 procedure Main is
-   use Ada.Text_IO;
-
-   -- Names renaming
-   function Img (I : Integer) return String renames Integer'Image;
-   --procedure Printf renames Put_Line;
-
 begin
-   DiffieHellman.Test;
+	Put_Line("Hola Mundo");
 end Main;
