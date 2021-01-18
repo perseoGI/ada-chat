@@ -1,5 +1,7 @@
 with Ada.Text_IO; use Ada.Text_IO;
+with RC4;
 --with "./utils/utils";
+
 with Utils;
 
 procedure Main is
