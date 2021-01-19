@@ -18,5 +18,5 @@ package Connections is
                   Port_Org: Port);
    procedure Finish(This: in out Object);
    procedure Send (This: in out Object; Msg: String);
-   procedure Read (This : in out Object; Msg : out String);
+   procedure Read (This : in out Object);
 end Connections;

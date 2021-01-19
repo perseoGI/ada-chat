@@ -6,3 +6,4 @@
 obj/*
 *.gcno
 *.gcda
+*.gcov
