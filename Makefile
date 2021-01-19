@@ -4,7 +4,7 @@ prepare:
 	mkdir obj
 
 compile:
-	gprbuild -q -P AdaChat.gpr
+	gprbuild -q -P AdaChat.gpr $(PROFILE_FLAGS)
 
 test:
 	./obj/main

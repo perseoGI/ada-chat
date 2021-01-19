@@ -1,0 +1,510 @@
+        -:    0:Source:/usr/lib/gcc/x86_64-linux-gnu/9/adainclude/a-coinve.ads
+        -:    1:------------------------------------------------------------------------------
+        -:    2:--                                                                          --
+        -:    3:--                         GNAT LIBRARY COMPONENTS                          --
+        -:    4:--                                                                          --
+        -:    5:--    A D A . C O N T A I N E R S . I N D E F I N I T E _ V E C T O R S     --
+        -:    6:--                                                                          --
+        -:    7:--                                 S p e c                                  --
+        -:    8:--                                                                          --
+        -:    9:--          Copyright (C) 2004-2019, Free Software Foundation, Inc.         --
+        -:   10:--                                                                          --
+        -:   11:-- This specification is derived from the Ada Reference Manual for use with --
+        -:   12:-- GNAT. The copyright notice above, and the license provisions that follow --
+        -:   13:-- apply solely to the  contents of the part following the private keyword. --
+        -:   14:--                                                                          --
+        -:   15:-- GNAT is free software;  you can  redistribute it  and/or modify it under --
+        -:   16:-- terms of the  GNU General Public License as published  by the Free Soft- --
+        -:   17:-- ware  Foundation;  either version 3,  or (at your option) any later ver- --
+        -:   18:-- sion.  GNAT is distributed in the hope that it will be useful, but WITH- --
+        -:   19:-- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
+        -:   20:-- or FITNESS FOR A PARTICULAR PURPOSE.                                     --
+        -:   21:--                                                                          --
+        -:   22:-- As a special exception under Section 7 of GPL version 3, you are granted --
+        -:   23:-- additional permissions described in the GCC Runtime Library Exception,   --
+        -:   24:-- version 3.1, as published by the Free Software Foundation.               --
+        -:   25:--                                                                          --
+        -:   26:-- You should have received a copy of the GNU General Public License and    --
+        -:   27:-- a copy of the GCC Runtime Library Exception along with this program;     --
+        -:   28:-- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
+        -:   29:-- <http://www.gnu.org/licenses/>.                                          --
+        -:   30:--                                                                          --
+        -:   31:-- This unit was originally developed by Matthew J Heaney.                  --
+        -:   32:------------------------------------------------------------------------------
+        -:   33:
+        -:   34:with Ada.Iterator_Interfaces;
+        -:   35:
+        -:   36:with Ada.Containers.Helpers;
+        -:   37:private with Ada.Finalization;
+        -:   38:private with Ada.Streams;
+        -:   39:
+        -:   40:generic
+        -:   41:   type Index_Type is range <>;
+        -:   42:   type Element_Type (<>) is private;
+        -:   43:
+        -:   44:   with function "=" (Left, Right : Element_Type) return Boolean is <>;
+        -:   45:
+        -:   46:package Ada.Containers.Indefinite_Vectors is
+        -:   47:   pragma Annotate (CodePeer, Skip_Analysis);
+        -:   48:   pragma Preelaborate;
+        -:   49:   pragma Remote_Types;
+        -:   50:
+        -:   51:   subtype Extended_Index is Index_Type'Base
+        -:   52:     range Index_Type'First - 1 ..
+        -:   53:           Index_Type'Min (Index_Type'Base'Last - 1, Index_Type'Last) + 1;
+        -:   54:
+        -:   55:   No_Index : constant Extended_Index := Extended_Index'First;
+        -:   56:
+        -:   57:   type Vector is tagged private
+        -:   58:   with
+        -:   59:     Constant_Indexing => Constant_Reference,
+        -:   60:     Variable_Indexing => Reference,
+        -:   61:     Default_Iterator  => Iterate,
+        -:   62:     Iterator_Element  => Element_Type;
+        -:   63:
+        -:   64:   pragma Preelaborable_Initialization (Vector);
+        -:   65:
+        -:   66:   type Cursor is private;
+        -:   67:   pragma Preelaborable_Initialization (Cursor);
+        -:   68:
+        -:   69:   Empty_Vector : constant Vector;
+        -:   70:
+        -:   71:   No_Element : constant Cursor;
+        -:   72:
+        -:   73:   function Has_Element (Position : Cursor) return Boolean;
+        -:   74:
+        -:   75:   package Vector_Iterator_Interfaces is new
+        -:   76:     Ada.Iterator_Interfaces (Cursor, Has_Element);
+        -:   77:
+        -:   78:   overriding function "=" (Left, Right : Vector) return Boolean;
+        -:   79:
+        -:   80:   function To_Vector (Length : Count_Type) return Vector;
+        -:   81:
+        -:   82:   function To_Vector
+        -:   83:     (New_Item : Element_Type;
+        -:   84:      Length   : Count_Type) return Vector;
+        -:   85:
+        -:   86:   function "&" (Left, Right : Vector) return Vector;
+        -:   87:
+        -:   88:   function "&" (Left : Vector; Right : Element_Type) return Vector;
+        -:   89:
+        -:   90:   function "&" (Left : Element_Type; Right : Vector) return Vector;
+        -:   91:
+        -:   92:   function "&" (Left, Right : Element_Type) return Vector;
+        -:   93:
+        -:   94:   function Capacity (Container : Vector) return Count_Type;
+        -:   95:
+        -:   96:   procedure Reserve_Capacity
+        -:   97:     (Container : in out Vector;
+        -:   98:      Capacity  : Count_Type);
+        -:   99:
+        -:  100:   function Length (Container : Vector) return Count_Type;
+        -:  101:
+        -:  102:   procedure Set_Length
+        -:  103:     (Container : in out Vector;
+        -:  104:      Length    : Count_Type);
+        -:  105:
+        -:  106:   function Is_Empty (Container : Vector) return Boolean;
+        -:  107:
+        -:  108:   procedure Clear (Container : in out Vector);
+        -:  109:
+        -:  110:   type Constant_Reference_Type
+        -:  111:      (Element : not null access constant Element_Type) is private
+        -:  112:   with
+        -:  113:      Implicit_Dereference => Element;
+        -:  114:
+        -:  115:   type Reference_Type (Element : not null access Element_Type) is private
+        -:  116:   with
+        -:  117:      Implicit_Dereference => Element;
+        -:  118:
+        -:  119:   function Constant_Reference
+        -:  120:     (Container : aliased Vector;
+        -:  121:      Position  : Cursor) return Constant_Reference_Type;
+        -:  122:   pragma Inline (Constant_Reference);
+        -:  123:
+        -:  124:   function Reference
+        -:  125:     (Container : aliased in out Vector;
+        -:  126:      Position  : Cursor) return Reference_Type;
+        -:  127:   pragma Inline (Reference);
+        -:  128:
+        -:  129:   function Constant_Reference
+        -:  130:     (Container : aliased Vector;
+        -:  131:      Index     : Index_Type) return Constant_Reference_Type;
+        -:  132:   pragma Inline (Constant_Reference);
+        -:  133:
+        -:  134:   function Reference
+        -:  135:     (Container : aliased in out Vector;
+        -:  136:      Index     : Index_Type) return Reference_Type;
+        -:  137:   pragma Inline (Reference);
+        -:  138:
+        -:  139:   function To_Cursor
+        -:  140:     (Container : Vector;
+        -:  141:      Index     : Extended_Index) return Cursor;
+        -:  142:
+        -:  143:   function To_Index (Position : Cursor) return Extended_Index;
+        -:  144:
+        -:  145:   function Element
+        -:  146:     (Container : Vector;
+        -:  147:      Index     : Index_Type) return Element_Type;
+        -:  148:
+        -:  149:   function Element (Position : Cursor) return Element_Type;
+        -:  150:
+        -:  151:   procedure Replace_Element
+        -:  152:     (Container : in out Vector;
+        -:  153:      Index     : Index_Type;
+        -:  154:      New_Item  : Element_Type);
+        -:  155:
+        -:  156:   procedure Replace_Element
+        -:  157:     (Container : in out Vector;
+        -:  158:      Position  : Cursor;
+        -:  159:      New_Item  : Element_Type);
+        -:  160:
+        -:  161:   procedure Query_Element
+        -:  162:     (Container : Vector;
+        -:  163:      Index     : Index_Type;
+        -:  164:      Process   : not null access procedure (Element : Element_Type));
+        -:  165:
+        -:  166:   procedure Query_Element
+        -:  167:     (Position : Cursor;
+        -:  168:      Process  : not null access procedure (Element : Element_Type));
+        -:  169:
+        -:  170:   procedure Update_Element
+        -:  171:     (Container : in out Vector;
+        -:  172:      Index     : Index_Type;
+        -:  173:      Process   : not null access procedure (Element : in out Element_Type));
+        -:  174:
+        -:  175:   procedure Update_Element
+        -:  176:     (Container : in out Vector;
+        -:  177:      Position  : Cursor;
+        -:  178:      Process   : not null access procedure (Element : in out Element_Type));
+        -:  179:
+        -:  180:   procedure Assign (Target : in out Vector; Source : Vector);
+        -:  181:
+        -:  182:   function Copy (Source : Vector; Capacity : Count_Type := 0) return Vector;
+        -:  183:
+        -:  184:   procedure Move (Target : in out Vector; Source : in out Vector);
+        -:  185:
+        -:  186:   procedure Insert
+        -:  187:     (Container : in out Vector;
+        -:  188:      Before    : Extended_Index;
+        -:  189:      New_Item  : Vector);
+        -:  190:
+        -:  191:   procedure Insert
+        -:  192:     (Container : in out Vector;
+        -:  193:      Before    : Cursor;
+        -:  194:      New_Item  : Vector);
+        -:  195:
+        -:  196:   procedure Insert
+        -:  197:     (Container : in out Vector;
+        -:  198:      Before    : Cursor;
+        -:  199:      New_Item  : Vector;
+        -:  200:      Position  : out Cursor);
+        -:  201:
+        -:  202:   procedure Insert
+        -:  203:     (Container : in out Vector;
+        -:  204:      Before    : Extended_Index;
+        -:  205:      New_Item  : Element_Type;
+        -:  206:      Count     : Count_Type := 1);
+        -:  207:
+        -:  208:   procedure Insert
+        -:  209:     (Container : in out Vector;
+        -:  210:      Before    : Cursor;
+        -:  211:      New_Item  : Element_Type;
+        -:  212:      Count     : Count_Type := 1);
+        -:  213:
+        -:  214:   procedure Insert
+        -:  215:     (Container : in out Vector;
+        -:  216:      Before    : Cursor;
+        -:  217:      New_Item  : Element_Type;
+        -:  218:      Position  : out Cursor;
+        -:  219:      Count     : Count_Type := 1);
+        -:  220:
+        -:  221:   procedure Prepend
+        -:  222:     (Container : in out Vector;
+        -:  223:      New_Item  : Vector);
+        -:  224:
+        -:  225:   procedure Prepend
+        -:  226:     (Container : in out Vector;
+        -:  227:      New_Item  : Element_Type;
+        -:  228:      Count     : Count_Type := 1);
+        -:  229:
+        -:  230:   procedure Append
+        -:  231:     (Container : in out Vector;
+        -:  232:      New_Item  : Vector);
+        -:  233:
+        -:  234:   procedure Append
+        -:  235:     (Container : in out Vector;
+        -:  236:      New_Item  : Element_Type;
+        -:  237:      Count     : Count_Type := 1);
+        -:  238:
+        -:  239:   procedure Insert_Space
+        -:  240:     (Container : in out Vector;
+        -:  241:      Before    : Extended_Index;
+        -:  242:      Count     : Count_Type := 1);
+        -:  243:
+        -:  244:   procedure Insert_Space
+        -:  245:     (Container : in out Vector;
+        -:  246:      Before    : Cursor;
+        -:  247:      Position  : out Cursor;
+        -:  248:      Count     : Count_Type := 1);
+        -:  249:
+        -:  250:   procedure Delete
+        -:  251:     (Container : in out Vector;
+        -:  252:      Index     : Extended_Index;
+        -:  253:      Count     : Count_Type := 1);
+        -:  254:
+        -:  255:   procedure Delete
+        -:  256:     (Container : in out Vector;
+        -:  257:      Position  : in out Cursor;
+        -:  258:      Count     : Count_Type := 1);
+        -:  259:
+        -:  260:   procedure Delete_First
+        -:  261:     (Container : in out Vector;
+        -:  262:      Count     : Count_Type := 1);
+        -:  263:
+        -:  264:   procedure Delete_Last
+        -:  265:     (Container : in out Vector;
+        -:  266:      Count     : Count_Type := 1);
+        -:  267:
+        -:  268:   procedure Reverse_Elements (Container : in out Vector);
+        -:  269:
+        -:  270:   procedure Swap (Container : in out Vector; I, J : Index_Type);
+        -:  271:
+        -:  272:   procedure Swap (Container : in out Vector; I, J : Cursor);
+        -:  273:
+        -:  274:   function First_Index (Container : Vector) return Index_Type;
+        -:  275:
+        -:  276:   function First (Container : Vector) return Cursor;
+        -:  277:
+        -:  278:   function First_Element (Container : Vector) return Element_Type;
+        -:  279:
+        -:  280:   function Last_Index (Container : Vector) return Extended_Index;
+        -:  281:
+        -:  282:   function Last (Container : Vector) return Cursor;
+        -:  283:
+        -:  284:   function Last_Element (Container : Vector) return Element_Type;
+        -:  285:
+        -:  286:   function Next (Position : Cursor) return Cursor;
+        -:  287:
+        -:  288:   procedure Next (Position : in out Cursor);
+        -:  289:
+        -:  290:   function Previous (Position : Cursor) return Cursor;
+        -:  291:
+        -:  292:   procedure Previous (Position : in out Cursor);
+        -:  293:
+        -:  294:   function Find_Index
+        -:  295:     (Container : Vector;
+        -:  296:      Item      : Element_Type;
+        -:  297:      Index     : Index_Type := Index_Type'First) return Extended_Index;
+        -:  298:
+        -:  299:   function Find
+        -:  300:     (Container : Vector;
+        -:  301:      Item      : Element_Type;
+        -:  302:      Position  : Cursor := No_Element) return Cursor;
+        -:  303:
+        -:  304:   function Reverse_Find_Index
+        -:  305:     (Container : Vector;
+        -:  306:      Item      : Element_Type;
+        -:  307:      Index     : Index_Type := Index_Type'Last) return Extended_Index;
+        -:  308:
+        -:  309:   function Reverse_Find
+        -:  310:     (Container : Vector;
+        -:  311:      Item      : Element_Type;
+        -:  312:      Position  : Cursor := No_Element) return Cursor;
+        -:  313:
+        -:  314:   function Contains
+        -:  315:     (Container : Vector;
+        -:  316:      Item      : Element_Type) return Boolean;
+        -:  317:
+        -:  318:   procedure Iterate
+        -:  319:     (Container : Vector;
+        -:  320:      Process   : not null access procedure (Position : Cursor));
+        -:  321:
+        -:  322:   function Iterate (Container : Vector)
+        -:  323:      return Vector_Iterator_Interfaces.Reversible_Iterator'class;
+        -:  324:
+        -:  325:   function Iterate
+        -:  326:     (Container : Vector;
+        -:  327:      Start     : Cursor)
+        -:  328:      return Vector_Iterator_Interfaces.Reversible_Iterator'class;
+        -:  329:
+        -:  330:   procedure Reverse_Iterate
+        -:  331:     (Container : Vector;
+        -:  332:      Process   : not null access procedure (Position : Cursor));
+        -:  333:
+        -:  334:   generic
+        -:  335:      with function "<" (Left, Right : Element_Type) return Boolean is <>;
+        -:  336:   package Generic_Sorting is
+        -:  337:
+        -:  338:      function Is_Sorted (Container : Vector) return Boolean;
+        -:  339:
+        -:  340:      procedure Sort (Container : in out Vector);
+        -:  341:
+        -:  342:      procedure Merge (Target : in out Vector; Source : in out Vector);
+        -:  343:
+        -:  344:   end Generic_Sorting;
+        -:  345:
+        -:  346:private
+        -:  347:
+        -:  348:   pragma Inline (Append);
+        -:  349:   pragma Inline (First_Index);
+        -:  350:   pragma Inline (Last_Index);
+        -:  351:   pragma Inline (Element);
+        -:  352:   pragma Inline (First_Element);
+        -:  353:   pragma Inline (Last_Element);
+        -:  354:   pragma Inline (Query_Element);
+        -:  355:   pragma Inline (Update_Element);
+        -:  356:   pragma Inline (Replace_Element);
+        -:  357:   pragma Inline (Is_Empty);
+        -:  358:   pragma Inline (Contains);
+        -:  359:   pragma Inline (Next);
+        -:  360:   pragma Inline (Previous);
+        -:  361:
+        -:  362:   use Ada.Containers.Helpers;
+        -:  363:   package Implementation is new Generic_Implementation;
+        -:  364:   use Implementation;
+        -:  365:
+        -:  366:   type Element_Access is access Element_Type;
+        -:  367:
+        -:  368:   type Elements_Array is array (Index_Type range <>) of Element_Access;
+        -:  369:   function "=" (L, R : Elements_Array) return Boolean is abstract;
+        -:  370:
+        -:  371:   type Elements_Type (Last : Extended_Index) is limited record
+        -:  372:      EA : Elements_Array (Index_Type'First .. Last);
+        -:  373:   end record;
+        -:  374:
+        -:  375:   type Elements_Access is access all Elements_Type;
+        -:  376:
+        -:  377:   use Finalization;
+        -:  378:   use Streams;
+        -:  379:
+        3:  380:   type Vector is new Controlled with record
+        -:  381:      Elements : Elements_Access := null;
+        -:  382:      Last     : Extended_Index := No_Index;
+        -:  383:      TC       : aliased Tamper_Counts;
+        -:  384:   end record;
+        -:  385:
+        -:  386:   overriding procedure Adjust (Container : in out Vector);
+        -:  387:   overriding procedure Finalize (Container : in out Vector);
+        -:  388:
+        -:  389:   procedure Write
+        -:  390:     (Stream    : not null access Root_Stream_Type'Class;
+        -:  391:      Container : Vector);
+        -:  392:
+        -:  393:   for Vector'Write use Write;
+        -:  394:
+        -:  395:   procedure Read
+        -:  396:     (Stream    : not null access Root_Stream_Type'Class;
+        -:  397:      Container : out Vector);
+        -:  398:
+        -:  399:   for Vector'Read use Read;
+        -:  400:
+        -:  401:   type Vector_Access is access all Vector;
+        -:  402:   for Vector_Access'Storage_Size use 0;
+        -:  403:
+        -:  404:   type Cursor is record
+        -:  405:      Container : Vector_Access;
+        -:  406:      Index     : Index_Type := Index_Type'First;
+        -:  407:   end record;
+        -:  408:
+        -:  409:   procedure Read
+        -:  410:     (Stream   : not null access Root_Stream_Type'Class;
+        -:  411:      Position : out Cursor);
+        -:  412:
+        -:  413:   for Cursor'Read use Read;
+        -:  414:
+        -:  415:   procedure Write
+        -:  416:     (Stream   : not null access Root_Stream_Type'Class;
+        -:  417:      Position : Cursor);
+        -:  418:
+        -:  419:   for Cursor'Write use Write;
+        -:  420:
+        -:  421:   subtype Reference_Control_Type is Implementation.Reference_Control_Type;
+        -:  422:   --  It is necessary to rename this here, so that the compiler can find it
+        -:  423:
+        -:  424:   type Constant_Reference_Type
+        -:  425:     (Element : not null access constant Element_Type) is
+        -:  426:      record
+        -:  427:         Control : Reference_Control_Type :=
+        -:  428:           raise Program_Error with "uninitialized reference";
+        -:  429:         --  The RM says, "The default initialization of an object of
+        -:  430:         --  type Constant_Reference_Type or Reference_Type propagates
+        -:  431:         --  Program_Error."
+        -:  432:      end record;
+        -:  433:
+        -:  434:   procedure Write
+        -:  435:     (Stream : not null access Root_Stream_Type'Class;
+        -:  436:      Item   : Constant_Reference_Type);
+        -:  437:
+        -:  438:   for Constant_Reference_Type'Write use Write;
+        -:  439:
+        -:  440:   procedure Read
+        -:  441:     (Stream : not null access Root_Stream_Type'Class;
+        -:  442:      Item   : out Constant_Reference_Type);
+        -:  443:
+        -:  444:   for Constant_Reference_Type'Read use Read;
+        -:  445:
+        -:  446:   type Reference_Type
+        -:  447:     (Element : not null access Element_Type) is
+        -:  448:      record
+        -:  449:         Control : Reference_Control_Type :=
+        -:  450:           raise Program_Error with "uninitialized reference";
+        -:  451:         --  The RM says, "The default initialization of an object of
+        -:  452:         --  type Constant_Reference_Type or Reference_Type propagates
+        -:  453:         --  Program_Error."
+        -:  454:      end record;
+        -:  455:
+        -:  456:   procedure Write
+        -:  457:     (Stream : not null access Root_Stream_Type'Class;
+        -:  458:      Item   : Reference_Type);
+        -:  459:
+        -:  460:   for Reference_Type'Write use Write;
+        -:  461:
+        -:  462:   procedure Read
+        -:  463:     (Stream : not null access Root_Stream_Type'Class;
+        -:  464:      Item   : out Reference_Type);
+        -:  465:
+        -:  466:   for Reference_Type'Read use Read;
+        -:  467:
+        -:  468:   --  Three operations are used to optimize in the expansion of "for ... of"
+        -:  469:   --  loops: the Next(Cursor) procedure in the visible part, and the following
+        -:  470:   --  Pseudo_Reference and Get_Element_Access functions. See Exp_Ch5 for
+        -:  471:   --  details.
+        -:  472:
+        -:  473:   function Pseudo_Reference
+        -:  474:     (Container : aliased Vector'Class) return Reference_Control_Type;
+        -:  475:   pragma Inline (Pseudo_Reference);
+        -:  476:   --  Creates an object of type Reference_Control_Type pointing to the
+        -:  477:   --  container, and increments the Lock. Finalization of this object will
+        -:  478:   --  decrement the Lock.
+        -:  479:
+        -:  480:   function Get_Element_Access
+        -:  481:     (Position : Cursor) return not null Element_Access;
+        -:  482:   --  Returns a pointer to the element designated by Position.
+        -:  483:
+        -:  484:   No_Element : constant Cursor := Cursor'(null, Index_Type'First);
+        -:  485:
+        -:  486:   Empty_Vector : constant Vector := (Controlled with others => <>);
+        -:  487:
+        1:  488:   type Iterator is new Limited_Controlled and
+        -:  489:     Vector_Iterator_Interfaces.Reversible_Iterator with
+        -:  490:   record
+        -:  491:      Container : Vector_Access;
+        -:  492:      Index     : Index_Type'Base;
+        -:  493:   end record
+        -:  494:     with Disable_Controlled => not T_Check;
+        -:  495:
+        -:  496:   overriding procedure Finalize (Object : in out Iterator);
+        -:  497:
+        -:  498:   overriding function First (Object : Iterator) return Cursor;
+        -:  499:   overriding function Last  (Object : Iterator) return Cursor;
+        -:  500:
+        -:  501:   overriding function Next
+        -:  502:     (Object   : Iterator;
+        -:  503:      Position : Cursor) return Cursor;
+        -:  504:
+        -:  505:   overriding function Previous
+        -:  506:     (Object   : Iterator;
+        -:  507:      Position : Cursor) return Cursor;
+        -:  508:
+        -:  509:end Ada.Containers.Indefinite_Vectors;

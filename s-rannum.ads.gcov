@@ -1,0 +1,163 @@
+        -:    0:Source:/usr/lib/gcc/x86_64-linux-gnu/9/adainclude/s-rannum.ads
+        -:    1:------------------------------------------------------------------------------
+        -:    2:--                                                                          --
+        -:    3:--                         GNAT RUN-TIME COMPONENTS                         --
+        -:    4:--                                                                          --
+        -:    5:--                S Y S T E M . R A N D O M _ N U M B E R S                 --
+        -:    6:--                                                                          --
+        -:    7:--                                 S p e c                                  --
+        -:    8:--                                                                          --
+        -:    9:--          Copyright (C) 2007-2019, Free Software Foundation, Inc.         --
+        -:   10:--                                                                          --
+        -:   11:-- GNAT is free software;  you can  redistribute it  and/or modify it under --
+        -:   12:-- terms of the  GNU General Public License as published  by the Free Soft- --
+        -:   13:-- ware  Foundation;  either version 3,  or (at your option) any later ver- --
+        -:   14:-- sion.  GNAT is distributed in the hope that it will be useful, but WITH- --
+        -:   15:-- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
+        -:   16:-- or FITNESS FOR A PARTICULAR PURPOSE.                                     --
+        -:   17:--                                                                          --
+        -:   18:-- As a special exception under Section 7 of GPL version 3, you are granted --
+        -:   19:-- additional permissions described in the GCC Runtime Library Exception,   --
+        -:   20:-- version 3.1, as published by the Free Software Foundation.               --
+        -:   21:--                                                                          --
+        -:   22:-- You should have received a copy of the GNU General Public License and    --
+        -:   23:-- a copy of the GCC Runtime Library Exception along with this program;     --
+        -:   24:-- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
+        -:   25:-- <http://www.gnu.org/licenses/>.                                          --
+        -:   26:--                                                                          --
+        -:   27:-- GNAT was originally developed  by the GNAT team at  New York University. --
+        -:   28:-- Extensive contributions were provided by Ada Core Technologies Inc.      --
+        -:   29:--                                                                          --
+        -:   30:------------------------------------------------------------------------------
+        -:   31:
+        -:   32:--  Extended pseudo-random number generation
+        -:   33:
+        -:   34:--  This package provides a type representing pseudo-random number generators,
+        -:   35:--  and subprograms to extract various uniform distributions of numbers
+        -:   36:--  from them. It also provides types for representing initialization values
+        -:   37:--  and snapshots of internal generator state, which permit reproducible
+        -:   38:--  pseudo-random streams.
+        -:   39:
+        -:   40:--  The generator currently provided by this package has an extremely long
+        -:   41:--  period (at least 2**19937-1), and passes the Big Crush test suite, with the
+        -:   42:--  exception of the two linear complexity tests. Therefore, it is suitable
+        -:   43:--  for simulations, but should not be used as a cryptographic pseudo-random
+        -:   44:--  source without additional processing.
+        -:   45:
+        -:   46:--  Note: this package is in the System hierarchy so that it can be directly
+        -:   47:--  used by other predefined packages. User access to this package is via
+        -:   48:--  the package GNAT.Random_Numbers (file g-rannum.ads), which also extends
+        -:   49:--  its capabilities. The interfaces are different so as to include in
+        -:   50:--  System.Random_Numbers only the definitions necessary to implement the
+        -:   51:--  standard random-number packages Ada.Numerics.Float_Random and
+        -:   52:--  Ada.Numerics.Discrete_Random.
+        -:   53:
+        -:   54:--  Note: this package is marked SPARK_Mode Off, because functions Random work
+        -:   55:--  by side-effect to change the value of the generator, hence they should not
+        -:   56:--  be called from SPARK code.
+        -:   57:
+        -:   58:with Interfaces;
+        -:   59:
+        -:   60:package System.Random_Numbers with
+        -:   61:  SPARK_Mode => Off
+        -:   62:is
+        -:   63:   type Generator is limited private;
+        -:   64:   --  Generator encodes the current state of a random number stream, it is
+        -:   65:   --  provided as input to produce the next random number, and updated so
+        -:   66:   --  that it is ready to produce the next one.
+        -:   67:
+        -:   68:   type State is private;
+        -:   69:   --  A non-limited version of a Generator's internal state
+        -:   70:
+        -:   71:   function Random (Gen : Generator) return Float;
+        -:   72:   function Random (Gen : Generator) return Long_Float;
+        -:   73:   --  Return pseudo-random numbers uniformly distributed on [0.0 .. 1.0)
+        -:   74:
+        -:   75:   function Random (Gen : Generator) return Interfaces.Unsigned_32;
+        -:   76:   function Random (Gen : Generator) return Interfaces.Unsigned_64;
+        -:   77:   --  Return pseudo-random numbers uniformly distributed on T'First .. T'Last
+        -:   78:   --  for builtin integer types.
+        -:   79:
+        -:   80:   generic
+        -:   81:      type Result_Subtype is (<>);
+        3:   82:      Default_Min : Result_Subtype := Result_Subtype'Val (0);
+        -:   83:   function Random_Discrete
+        -:   84:     (Gen : Generator;
+        -:   85:      Min : Result_Subtype := Default_Min;
+        -:   86:      Max : Result_Subtype := Result_Subtype'Last) return Result_Subtype;
+        -:   87:   --  Returns pseudo-random numbers uniformly distributed on Min .. Max
+        -:   88:
+        -:   89:   generic
+        -:   90:      type Result_Subtype is digits <>;
+        -:   91:   function Random_Float (Gen : Generator) return Result_Subtype;
+        -:   92:   --  Returns pseudo-random numbers uniformly distributed on [0 .. 1)
+        -:   93:
+        -:   94:   type Initialization_Vector is
+        -:   95:     array (Integer range <>) of Interfaces.Unsigned_32;
+        -:   96:   --  Provides the most general initialization values for a generator (used
+        -:   97:   --  in Reset).  In general, there is little point in providing more than
+        -:   98:   --  a certain number of values (currently 624).
+        -:   99:
+        -:  100:   procedure Reset (Gen : Generator);
+        -:  101:   --  Re-initialize the state of Gen from the time of day
+        -:  102:
+        -:  103:   procedure Reset (Gen : Generator; Initiator : Initialization_Vector);
+        -:  104:   procedure Reset (Gen : Generator; Initiator : Interfaces.Integer_32);
+        -:  105:   procedure Reset (Gen : Generator; Initiator : Interfaces.Unsigned_32);
+        -:  106:   procedure Reset (Gen : Generator; Initiator : Integer);
+        -:  107:   --  Re-initialize Gen based on the Initiator in various ways. Identical
+        -:  108:   --  values of Initiator cause identical sequences of values.
+        -:  109:
+        -:  110:   procedure Reset (Gen : Generator; From_State : Generator);
+        -:  111:   --  Causes the state of Gen to be identical to that of From_State; Gen
+        -:  112:   --  and From_State will produce identical sequences of values subsequently.
+        -:  113:
+        -:  114:   procedure Reset (Gen : Generator; From_State : State);
+        -:  115:   procedure Save  (Gen : Generator; To_State : out State);
+        -:  116:   --  The sequence
+        -:  117:   --     Save (Gen2, S); Reset (Gen1, S)
+        -:  118:   --  has the same effect as Reset (Gen2, Gen1).
+        -:  119:
+        -:  120:   procedure Reset (Gen : Generator; From_Image : String);
+        -:  121:   function Image (Gen : Generator) return String;
+        -:  122:   --  The call
+        -:  123:   --     Reset (Gen2, Image (Gen1))
+        -:  124:   --  has the same effect as Reset (Gen2, Gen1);
+        -:  125:
+        -:  126:   Max_Image_Width : constant := 11 * 624;
+        -:  127:   --  Maximum possible length of result of Image (...)
+        -:  128:
+        -:  129:   function Image (Of_State : State) return String;
+        -:  130:   --  A String representation of Of_State. Identical to the result of
+        -:  131:   --  Image (Gen), if Of_State has been set with Save (Gen, Of_State).
+        -:  132:
+        -:  133:   function Value (Coded_State : String) return State;
+        -:  134:   --  Inverse of Image on States
+        -:  135:
+        -:  136:private
+        -:  137:
+        -:  138:   N : constant := 624;
+        -:  139:   --  The number of 32-bit integers in the shift register
+        -:  140:
+        -:  141:   M : constant := 397;
+        -:  142:   --  Feedback distance from the current position
+        -:  143:
+        -:  144:   subtype State_Val is Interfaces.Unsigned_32;
+        -:  145:   type State is array (0 .. N - 1) of State_Val;
+        -:  146:
+        -:  147:   type Writable_Access (Self : access Generator) is limited null record;
+        -:  148:   --  Auxiliary type to make Generator a self-referential type
+        -:  149:
+        -:  150:   type Generator is limited record
+        -:  151:      Writable  : Writable_Access (Generator'Access);
+        -:  152:      --  This self reference allows functions to modify Generator arguments
+        -:  153:
+        -:  154:      S : State := (others => 0);
+        -:  155:      --  The shift register, a circular buffer
+        -:  156:
+        -:  157:      I : Integer := N;
+        -:  158:      --  Current starting position in shift register S (N means uninitialized)
+        -:  159:      --  We should avoid using the identifier I here ???
+        -:  160:   end record;
+        -:  161:
+        -:  162:end System.Random_Numbers;

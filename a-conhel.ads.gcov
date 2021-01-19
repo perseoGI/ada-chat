@@ -1,0 +1,160 @@
+        -:    0:Source:/usr/lib/gcc/x86_64-linux-gnu/9/adainclude/a-conhel.ads
+        -:    1:------------------------------------------------------------------------------
+        -:    2:--                                                                          --
+        -:    3:--                         GNAT LIBRARY COMPONENTS                          --
+        -:    4:--                                                                          --
+        -:    5:--               A D A . C O N T A I N E R S . H E L P E R S                --
+        -:    6:--                                                                          --
+        -:    7:--                                 S p e c                                  --
+        -:    8:--                                                                          --
+        -:    9:--             Copyright (C) 2015-2019, Free Software Foundation, Inc.      --
+        -:   10:--                                                                          --
+        -:   11:-- GNAT is free software;  you can  redistribute it  and/or modify it under --
+        -:   12:-- terms of the  GNU General Public License as published  by the Free Soft- --
+        -:   13:-- ware  Foundation;  either version 3,  or (at your option) any later ver- --
+        -:   14:-- sion.  GNAT is distributed in the hope that it will be useful, but WITH- --
+        -:   15:-- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
+        -:   16:-- or FITNESS FOR A PARTICULAR PURPOSE.                                     --
+        -:   17:--                                                                          --
+        -:   18:-- As a special exception under Section 7 of GPL version 3, you are granted --
+        -:   19:-- additional permissions described in the GCC Runtime Library Exception,   --
+        -:   20:-- version 3.1, as published by the Free Software Foundation.               --
+        -:   21:--                                                                          --
+        -:   22:-- You should have received a copy of the GNU General Public License and    --
+        -:   23:-- a copy of the GCC Runtime Library Exception along with this program;     --
+        -:   24:-- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
+        -:   25:-- <http://www.gnu.org/licenses/>.                                          --
+        -:   26:------------------------------------------------------------------------------
+        -:   27:
+        -:   28:with Ada.Finalization;
+        -:   29:with System.Atomic_Counters;
+        -:   30:
+        -:   31:package Ada.Containers.Helpers is
+        -:   32:   pragma Annotate (CodePeer, Skip_Analysis);
+        -:   33:   pragma Pure;
+        -:   34:
+        -:   35:   --  Miscellaneous helpers shared among various containers
+        -:   36:
+        -:   37:   package SAC renames System.Atomic_Counters;
+        -:   38:
+        -:   39:   Count_Type_Last : constant := Count_Type'Last;
+        -:   40:   --  Count_Type'Last as a universal_integer, so we can compare Index_Type
+        -:   41:   --  values against this without type conversions that might overflow.
+        -:   42:
+        -:   43:   type Tamper_Counts is record
+        -:   44:      Busy : aliased SAC.Atomic_Unsigned := 0;
+        -:   45:      Lock : aliased SAC.Atomic_Unsigned := 0;
+        -:   46:   end record;
+        -:   47:
+        -:   48:   --  Busy is positive when tampering with cursors is prohibited. Busy and
+        -:   49:   --  Lock are both positive when tampering with elements is prohibited.
+        -:   50:
+        -:   51:   type Tamper_Counts_Access is access all Tamper_Counts;
+        -:   52:   for Tamper_Counts_Access'Storage_Size use 0;
+        -:   53:
+        -:   54:   generic
+        -:   55:   package Generic_Implementation is
+        -:   56:
+        -:   57:      --  Generic package used in the implementation of containers.
+        -:   58:
+        -:   59:      --  This needs to be generic so that the 'Enabled attribute will return
+        -:   60:      --  the value that is relevant at the point where a container generic is
+        -:   61:      --  instantiated. For example:
+        -:   62:      --
+        -:   63:      --     pragma Suppress (Container_Checks);
+        -:   64:      --     package My_Vectors is new Ada.Containers.Vectors (...);
+        -:   65:      --
+        -:   66:      --  should suppress all container-related checks within the instance
+        -:   67:      --  My_Vectors.
+        -:   68:
+        -:   69:      --  Shorthands for "checks enabled" and "tampering checks enabled". Note
+        -:   70:      --  that suppressing either Container_Checks or Tampering_Check disables
+        -:   71:      --  tampering checks. Note that this code needs to be in a generic
+        -:   72:      --  package, because we want to take account of check suppressions at the
+        -:   73:      --  instance. We use these flags, along with pragma Inline, to ensure
+        -:   74:      --  that the compiler can optimize away the checks, as well as the
+        -:   75:      --  tampering check machinery, when checks are suppressed.
+        -:   76:
+        -:   77:      Checks : constant Boolean := Container_Checks'Enabled;
+        -:   78:      T_Check : constant Boolean :=
+        -:   79:        Container_Checks'Enabled and Tampering_Check'Enabled;
+        -:   80:
+        -:   81:      --  Reference_Control_Type is used as a component of reference types, to
+        -:   82:      --  prohibit tampering with elements so long as references exist.
+        -:   83:
+        3:   84:      type Reference_Control_Type is
+        -:   85:         new Finalization.Controlled with record
+        -:   86:            T_Counts : Tamper_Counts_Access;
+        -:   87:         end record
+        -:   88:           with Disable_Controlled => not T_Check;
+        -:   89:
+        -:   90:      overriding procedure Adjust (Control : in out Reference_Control_Type);
+        -:   91:      pragma Inline (Adjust);
+        -:   92:
+        -:   93:      overriding procedure Finalize (Control : in out Reference_Control_Type);
+        -:   94:      pragma Inline (Finalize);
+        -:   95:
+        -:   96:      procedure Zero_Counts (T_Counts : out Tamper_Counts);
+        -:   97:      pragma Inline (Zero_Counts);
+        -:   98:      --  Set Busy and Lock to zero
+        -:   99:
+        -:  100:      procedure Busy (T_Counts : in out Tamper_Counts);
+        -:  101:      pragma Inline (Busy);
+        -:  102:      --  Prohibit tampering with cursors
+        -:  103:
+        -:  104:      procedure Unbusy (T_Counts : in out Tamper_Counts);
+        -:  105:      pragma Inline (Unbusy);
+        -:  106:      --  Allow tampering with cursors
+        -:  107:
+        -:  108:      procedure Lock (T_Counts : in out Tamper_Counts);
+        -:  109:      pragma Inline (Lock);
+        -:  110:      --  Prohibit tampering with elements
+        -:  111:
+        -:  112:      procedure Unlock (T_Counts : in out Tamper_Counts);
+        -:  113:      pragma Inline (Unlock);
+        -:  114:      --  Allow tampering with elements
+        -:  115:
+        -:  116:      procedure TC_Check (T_Counts : Tamper_Counts);
+        -:  117:      pragma Inline (TC_Check);
+        -:  118:      --  Tampering-with-cursors check
+        -:  119:
+        -:  120:      procedure TE_Check (T_Counts : Tamper_Counts);
+        -:  121:      pragma Inline (TE_Check);
+        -:  122:      --  Tampering-with-elements check
+        -:  123:
+        -:  124:      -----------------
+        -:  125:      --  RAII Types --
+        -:  126:      -----------------
+        -:  127:
+        -:  128:      --  Initialize of With_Busy increments the Busy count, and Finalize
+        -:  129:      --  decrements it. Thus, to prohibit tampering with elements within a
+        -:  130:      --  given scope, declare an object of type With_Busy. The Busy count
+        -:  131:      --  will be correctly decremented in case of exception or abort.
+        -:  132:
+        -:  133:      --  With_Lock is the same as With_Busy, except it increments/decrements
+        -:  134:      --  BOTH Busy and Lock, thus prohibiting tampering with cursors.
+        -:  135:
+        -:  136:      type With_Busy (T_Counts : not null access Tamper_Counts) is
+        -:  137:        new Finalization.Limited_Controlled with null record
+        -:  138:          with Disable_Controlled => not T_Check;
+        -:  139:      overriding procedure Initialize (Busy : in out With_Busy);
+        -:  140:      overriding procedure Finalize (Busy : in out With_Busy);
+        -:  141:
+        -:  142:      type With_Lock (T_Counts : not null access Tamper_Counts) is
+        -:  143:        new Finalization.Limited_Controlled with null record
+        -:  144:          with Disable_Controlled => not T_Check;
+        -:  145:      overriding procedure Initialize (Lock : in out With_Lock);
+        -:  146:      overriding procedure Finalize (Lock : in out With_Lock);
+        -:  147:
+        -:  148:      --  Variables of type With_Busy and With_Lock are declared only for the
+        -:  149:      --  effects of Initialize and Finalize, so they are not referenced;
+        -:  150:      --  disable warnings about that. Note that all variables of these types
+        -:  151:      --  have names starting with "Busy" or "Lock". These pragmas need to be
+        -:  152:      --  present wherever these types are used.
+        -:  153:
+        -:  154:      pragma Warnings (Off, "variable ""Busy*"" is not referenced");
+        -:  155:      pragma Warnings (Off, "variable ""Lock*"" is not referenced");
+        -:  156:
+        -:  157:   end Generic_Implementation;
+        -:  158:
+        -:  159:end Ada.Containers.Helpers;

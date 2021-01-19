@@ -1,0 +1,60 @@
+        -:    0:Source:/mnt/c/Users/reiva/source/ada-chat/src/main.adb
+        -:    0:Graph:obj/main.gcno
+        -:    0:Data:obj/main.gcda
+        -:    0:Runs:1
+        -:    1:with Ada.Text_IO;
+        -:    2:with RC4;
+        -:    3:with DiffieHellman;
+        -:    4:with File_Parser;
+        -:    5:with Exceptions;
+        -:    6:with Ada.Exceptions;
+        -:    7:with Types;
+        -:    8:
+        1:    9:procedure Main is
+        -:   10:    use Ada.Text_IO;
+        -:   11:    use Ada.Exceptions;
+        -:   12:    use Exceptions;
+        -:   13:    use File_Parser;
+        -:   14:    use Types;
+        -:   15:
+        -:   16:    -- 1. Read and parse configuration file
+        -:   17:    -- 2. Open server and client socket and wait until connection is stablished
+        -:   18:    -- 3. Generate cipher keys
+        -:   19:    --  3.1. Diffie Hellman secret generation
+        -:   20:    --  3.2. Interchange Modulus, Base and public secret
+        -:   21:    --  3.3. Initiate RC4 cipher on both sides
+        -:   22:    -- 4. Start up User Interface
+        -:   23:    -- 5. Wait for incoming and outcoming messages cipher messages
+        -:   24:
+        1:   25:    Ip_Dest : IPv4.Bounded_String;
+        -:   26:    Port_Dest, Port_Src: Positive;
+        -:   27:    Modulus: U64;
+        -:   28:    Base: U64;
+        -:   29:    Diffie_Hellman_Secret: U64;
+        -:   30:    Diffie_Hellman_Public: U64;
+        -:   31:begin
+        -:   32:    -- 1. Read and parse configuration file
+        1:   33:    Parse_Config_File(Ip_Dest => Ip_Dest, Port_Dest => Port_Dest, Port_Src => Port_Src);
+        -:   34:    -- TODO no se como llamar a To_Sring (Ip_Dest) desde aqui
+        -:   35:
+        -:   36:    -- 2. Open server and client socket and wait until connection is stablished
+        -:   37:    -- TODO
+        -:   38:
+        -:   39:    -- 3. Generate cipher keys
+        -:   40:    --  3.1. Diffie Hellman secret generation
+        1:   41:    DiffieHellman.Generate_Modulus_And_Base(Modulus => Modulus, Base => Base);
+        1:   42:    Diffie_Hellman_Secret := DiffieHellman.Generate_Secret;
+        1:   43:    Diffie_Hellman_Public := DiffieHellman.Compute(Base => Base, Exp => Diffie_Hellman_Secret, Modulus => Modulus);
+        -:   44:
+        -:   45:    --  3.2. Interchange Modulus, Base and public secret
+        -:   46:    --  TODO
+        -:   47:    --  3.3. Initiate RC4 cipher on both sides
+        -:   48:    --  TODO
+        -:   49:
+        -:   50:exception
+    =====:   51:    when E: File_Parser_Exception =>
+    =====:   52:        Put_Line(Exception_Message(E));
+    =====:   53:        return;
+        -:   54:
+        -:   55:
+        1:   56:end Main;

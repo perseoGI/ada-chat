@@ -1,0 +1,113 @@
+        -:    0:Source:/mnt/c/Users/reiva/source/ada-chat/src/crypto/DiffieHellman/diffiehellman.adb
+        -:    1:with Ada.Text_IO;
+        -:    2:with Types;
+        -:    3:with Randomizer;
+        -:    4:
+        -:    5:package body DiffieHellman is
+        -:    6:    use Ada.Text_IO;
+        -:    7:    use Types;
+        -:    8:    --package Unsigned_64_IO is new Ada.Text_IO.modular_io(Unsigned_64);
+        -:    9:    -- Function to compute a^m mod n
+        -:   10:    -- TODO this could return a 0 value. Check!!!
+        1:   11:    function Compute (Base, Exp, Modulus : U64) return U64 is
+        -:   12:        R: U64;
+        1:   13:        Y: U64 := 1;
+        1:   14:        A: U64 := Base;
+        1:   15:        M: U64 := Exp;
+        -:   16:
+        -:   17:    begin
+       63:   18:        while M > 0 loop
+       62:   19:            R := M mod 2;
+        -:   20:            -- Fast exponention
+       62:   21:            if R = 1 then
+       29:   22:                Y := (Y * A) mod Modulus;
+        -:   23:            end if;
+       62:   24:            A := (A * A) mod Modulus;
+       62:   25:            M := M/2;
+       62:   26:        end loop;
+        -:   27:
+        1:   28:        Put("Public generated for Diffie-Hellman: "); Unsigned_64_IO.Put(Y); Put_Line("");
+        1:   29:        return Y;
+        -:   30:
+        -:   31:    end Compute;
+        -:   32:
+        -:   33:
+        1:   34:    procedure Generate_Modulus_And_Base (Modulus: out U64; Base: out U64) is
+        -:   35:
+        -:   36:    begin
+        1:   37:        Base := Randomizer.Generate_Rand_U64;
+        -:   38:        -- TODO modulus should be a big random prime number
+        1:   39:        Modulus := Randomizer.Generate_Rand_U64;
+        -:   40:
+        1:   41:        Put("Base generated for Diffie-Hellman: "); Unsigned_64_IO.Put(Base); Put_Line("");
+        1:   42:        Put("Modululs generated for Diffie-Hellman: "); Unsigned_64_IO.Put(Modulus); Put_Line("");
+        -:   43:
+        1:   44:    end Generate_Modulus_And_Base;
+        -:   45:
+        1:   46:    function Generate_Secret return U64 is
+        -:   47:        Secret_Number: U64;
+        -:   48:
+        -:   49:    begin
+        -:   50:        -- TODO modulus should be a big random prime number
+        1:   51:        Secret_Number := Randomizer.Generate_Rand_U64;
+        -:   52:
+        1:   53:        Put("Secret generated for Diffie-Hellman: "); Unsigned_64_IO.Put(Secret_Number); Put_Line("");
+        -:   54:
+        1:   55:        return Secret_Number;
+        -:   56:
+        -:   57:    end Generate_Secret;
+        -:   58:
+        -:   59:
+        -:   60:
+    #####:   61:    procedure Test is
+    #####:   62:        P: U64 := 12207031;  -- modulus
+    #####:   63:        G: U64 := 355;   -- base
+        -:   64:        --P: U64 := 16148168401;  -- modulus
+        -:   65:        --G: U64 := 305175781;   -- base
+        -:   66:        A, B, C: U64;	    -- A - Alice's Secret Key, B - Bob's Secret Key.
+        -:   67:        Ap, Bp, Cp: U64;	-- Ap - Alice's Public Key, Bp - Bob's Public Key
+        -:   68:        KeyA, KeyB, KeyC: U64;
+        -:   69:        --X: Big_Positive := From_String("999999999999999999");
+        -:   70:
+        -:   71:    begin
+    #####:   72:        Put_Line("Test: " & Integer'Image(Integer'Last ));
+        -:   73:        -- choose secret integer for Alice's Pivate Key (only known to Alice)
+    #####:   74:        A := 30151;		-- or use rand()
+        -:   75:
+        -:   76:        -- Calculate Alice's Public Key (Alice will send A to Bob)
+    #####:   77:        Ap := Compute(G, A, P);
+        -:   78:
+        -:   79:        -- choose secret integer for Bob's Pivate Key (only known to Bob)
+    #####:   80:        B := 12207;		-- or use rand()
+        -:   81:        --B := 12207031;		-- or use rand()
+        -:   82:
+        -:   83:        -- Calculate Bob's Public Key (Bob will send Bp to Alice)
+    #####:   84:        Bp := Compute(G, B, P);
+        -:   85:
+    #####:   86:        C := 1232345;
+    #####:   87:        Cp:= Compute(G, C, P);
+        -:   88:        -- Alice and Bob Exchanges their Public Key Ap & Bp with each other
+        -:   89:
+        -:   90:        -- Find Secret key
+    #####:   91:        KeyA := Compute(Bp, A, P);
+    #####:   92:        KeyB := Compute(Ap, B, P);
+    #####:   93:        KeyC := Compute(Ap, C, P);
+        -:   94:
+        -:   95:        --Put_Line("Alice's Secret Key is " & Integer'Image(KeyA) & " Bob's Secret Key is " & Integer'Image(KeyB));
+        -:   96:
+    #####:   97:        Put("Alice's Secret Key is ");
+    #####:   98:        Unsigned_64_IO.Put(KeyA);
+    #####:   99:        Put_Line("");
+    #####:  100:        Put("Bob's Secret Key is ");
+    #####:  101:        Unsigned_64_IO.Put(KeyB);
+    #####:  102:        Put_Line("");
+        -:  103:
+    #####:  104:        Put("C's Secret Key is ");
+    #####:  105:        Unsigned_64_IO.Put(KeyC);
+    #####:  106:        Put_Line("");
+        -:  107:        --Put_Line(To_String(X));
+        -:  108:
+    #####:  109:    end Test;
+        -:  110:
+        -:  111:end DiffieHellman;
+        -:  112:
