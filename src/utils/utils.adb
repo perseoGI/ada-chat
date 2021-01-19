@@ -1,9 +1,18 @@
-with Ada.Text_IO, Ada.Containers.Indefinite_Vectors, Ada.Strings.Fixed,
-	Ada.Strings.Maps, Ada.Characters.Handling, Ada.Strings.Unbounded,
+with Ada.Text_IO,
+    Ada.Containers.Indefinite_Vectors,
+    Ada.Strings.Fixed,
+	Ada.Strings.Maps,
+    Ada.Characters.Handling,
+    Ada.Strings.Unbounded,
 	Ada.Strings.Unbounded.Text_IO;
 
-use Ada.Text_IO, Ada.Containers, Ada.Strings, Ada.Strings.Fixed,
-	Ada.Strings.Maps, Ada.Characters.Handling, Ada.Strings.Unbounded,
+use Ada.Text_IO,
+    Ada.Containers,
+    Ada.Strings,
+    Ada.Strings.Fixed,
+	Ada.Strings.Maps,
+    Ada.Characters.Handling,
+    Ada.Strings.Unbounded,
 	Ada.Strings.Unbounded.Text_IO;
 
 package body Utils is
