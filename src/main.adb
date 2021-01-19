@@ -5,6 +5,7 @@ with File_Parser;
 with Exceptions;
 with Ada.Exceptions;
 with Types;
+with Cli;
 
 procedure Main is
     use Ada.Text_IO;
@@ -42,11 +43,14 @@ begin
     Diffie_Hellman_Secret := DiffieHellman.Generate_Secret;
     Diffie_Hellman_Public := DiffieHellman.Compute(Base => Base, Exp => Diffie_Hellman_Secret, Modulus => Modulus);
 
+
+
     --  3.2. Interchange Modulus, Base and public secret
     --  TODO
     --  3.3. Initiate RC4 cipher on both sides
     --  TODO
 
+    --Cli.User_Interface_Controller;
 exception
     when E: File_Parser_Exception =>
         Put_Line(Exception_Message(E));

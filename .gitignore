@@ -4,3 +4,5 @@
 # Ada Library Information
 *.ali
 obj/*
+*.gcno
+*.gcda
