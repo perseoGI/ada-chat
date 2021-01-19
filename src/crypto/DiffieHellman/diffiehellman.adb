@@ -1,11 +1,9 @@
 with Ada.Text_IO;
-with Ada.Numerics.Big_Numbers.Big_Integers;
 with Types;
 with Randomizer;
 
 package body DiffieHellman is
     use Ada.Text_IO;
-    use Ada.Numerics.Big_Numbers.Big_Integers;
     use Types;
     --package Unsigned_64_IO is new Ada.Text_IO.modular_io(Unsigned_64);
     -- Function to compute a^m mod n
