@@ -1,0 +1,187 @@
+        -:    0:Source:/usr/lib/gcc/x86_64-linux-gnu/9/adainclude/a-conhel.adb
+        -:    1:------------------------------------------------------------------------------
+        -:    2:--                                                                          --
+        -:    3:--                         GNAT LIBRARY COMPONENTS                          --
+        -:    4:--                                                                          --
+        -:    5:--               A D A . C O N T A I N E R S . H E L P E R S                --
+        -:    6:--                                                                          --
+        -:    7:--                                 B o d y                                  --
+        -:    8:--                                                                          --
+        -:    9:--           Copyright (C) 2015-2019, Free Software Foundation, Inc.        --
+        -:   10:--                                                                          --
+        -:   11:-- GNAT is free software;  you can  redistribute it  and/or modify it under --
+        -:   12:-- terms of the  GNU General Public License as published  by the Free Soft- --
+        -:   13:-- ware  Foundation;  either version 3,  or (at your option) any later ver- --
+        -:   14:-- sion.  GNAT is distributed in the hope that it will be useful, but WITH- --
+        -:   15:-- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
+        -:   16:-- or FITNESS FOR A PARTICULAR PURPOSE.                                     --
+        -:   17:--                                                                          --
+        -:   18:-- As a special exception under Section 7 of GPL version 3, you are granted --
+        -:   19:-- additional permissions described in the GCC Runtime Library Exception,   --
+        -:   20:-- version 3.1, as published by the Free Software Foundation.               --
+        -:   21:--                                                                          --
+        -:   22:-- You should have received a copy of the GNU General Public License and    --
+        -:   23:-- a copy of the GCC Runtime Library Exception along with this program;     --
+        -:   24:-- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
+        -:   25:-- <http://www.gnu.org/licenses/>.                                          --
+        -:   26:------------------------------------------------------------------------------
+        -:   27:
+        -:   28:package body Ada.Containers.Helpers is
+        -:   29:
+        -:   30:   package body Generic_Implementation is
+        -:   31:
+        -:   32:      use type SAC.Atomic_Unsigned;
+        -:   33:
+        -:   34:      ------------
+        -:   35:      -- Adjust --
+        -:   36:      ------------
+        -:   37:
+        2:   38:      procedure Adjust (Control : in out Reference_Control_Type) is
+        -:   39:      begin
+        2:   40:         if Control.T_Counts /= null then
+        2:   41:            Lock (Control.T_Counts.all);
+        -:   42:         end if;
+        2:   43:      end Adjust;
+        -:   44:
+        -:   45:      ----------
+        -:   46:      -- Busy --
+        -:   47:      ----------
+        -:   48:
+        1:   49:      procedure Busy (T_Counts : in out Tamper_Counts) is
+        -:   50:      begin
+        -:   51:         if T_Check then
+        1:   52:            SAC.Increment (T_Counts.Busy);
+        -:   53:         end if;
+        1:   54:      end Busy;
+        -:   55:
+        -:   56:      --------------
+        -:   57:      -- Finalize --
+        -:   58:      --------------
+        -:   59:
+        3:   60:      procedure Finalize (Control : in out Reference_Control_Type) is
+        -:   61:      begin
+        3:   62:         if Control.T_Counts /= null then
+        3:   63:            Unlock (Control.T_Counts.all);
+        3:   64:            Control.T_Counts := null;
+        -:   65:         end if;
+        3:   66:      end Finalize;
+        -:   67:
+        -:   68:      --  No need to protect against double Finalize here, because these types
+        -:   69:      --  are limited.
+        -:   70:
+    #####:   71:      procedure Finalize (Busy : in out With_Busy) is
+        -:   72:         pragma Warnings (Off);
+        -:   73:         pragma Assert (T_Check); -- not called if check suppressed
+        -:   74:         pragma Warnings (On);
+        -:   75:      begin
+    #####:   76:         Unbusy (Busy.T_Counts.all);
+    #####:   77:      end Finalize;
+        -:   78:
+    #####:   79:      procedure Finalize (Lock : in out With_Lock) is
+        -:   80:         pragma Warnings (Off);
+        -:   81:         pragma Assert (T_Check); -- not called if check suppressed
+        -:   82:         pragma Warnings (On);
+        -:   83:      begin
+    #####:   84:         Unlock (Lock.T_Counts.all);
+    #####:   85:      end Finalize;
+        -:   86:
+        -:   87:      ----------------
+        -:   88:      -- Initialize --
+        -:   89:      ----------------
+        -:   90:
+    #####:   91:      procedure Initialize (Busy : in out With_Busy) is
+        -:   92:         pragma Warnings (Off);
+        -:   93:         pragma Assert (T_Check); -- not called if check suppressed
+        -:   94:         pragma Warnings (On);
+        -:   95:      begin
+    #####:   96:         Generic_Implementation.Busy (Busy.T_Counts.all);
+    #####:   97:      end Initialize;
+        -:   98:
+    #####:   99:      procedure Initialize (Lock : in out With_Lock) is
+        -:  100:         pragma Warnings (Off);
+        -:  101:         pragma Assert (T_Check); -- not called if check suppressed
+        -:  102:         pragma Warnings (On);
+        -:  103:      begin
+    #####:  104:         Generic_Implementation.Lock (Lock.T_Counts.all);
+    #####:  105:      end Initialize;
+        -:  106:
+        -:  107:      ----------
+        -:  108:      -- Lock --
+        -:  109:      ----------
+        -:  110:
+        3:  111:      procedure Lock (T_Counts : in out Tamper_Counts) is
+        -:  112:      begin
+        -:  113:         if T_Check then
+        3:  114:            SAC.Increment (T_Counts.Lock);
+        3:  115:            SAC.Increment (T_Counts.Busy);
+        -:  116:         end if;
+        3:  117:      end Lock;
+        -:  118:
+        -:  119:      --------------
+        -:  120:      -- TC_Check --
+        -:  121:      --------------
+        -:  122:
+        8:  123:      procedure TC_Check (T_Counts : Tamper_Counts) is
+        -:  124:      begin
+        8:  125:         if T_Check and then T_Counts.Busy > 0 then
+    #####:  126:            raise Program_Error with
+        -:  127:              "attempt to tamper with cursors";
+        -:  128:         end if;
+        -:  129:
+        -:  130:         --  The lock status (which monitors "element tampering") always
+        -:  131:         --  implies that the busy status (which monitors "cursor tampering")
+        -:  132:         --  is set too; this is a representation invariant. Thus if the busy
+        -:  133:         --  bit is not set, then the lock bit must not be set either.
+        -:  134:
+        -:  135:         pragma Assert (T_Counts.Lock = 0);
+        8:  136:      end TC_Check;
+        -:  137:
+        -:  138:      --------------
+        -:  139:      -- TE_Check --
+        -:  140:      --------------
+        -:  141:
+    #####:  142:      procedure TE_Check (T_Counts : Tamper_Counts) is
+        -:  143:      begin
+    #####:  144:         if T_Check and then T_Counts.Lock > 0 then
+    #####:  145:            raise Program_Error with
+        -:  146:              "attempt to tamper with elements";
+        -:  147:         end if;
+    #####:  148:      end TE_Check;
+        -:  149:
+        -:  150:      ------------
+        -:  151:      -- Unbusy --
+        -:  152:      ------------
+        -:  153:
+        1:  154:      procedure Unbusy (T_Counts : in out Tamper_Counts) is
+        -:  155:      begin
+        -:  156:         if T_Check then
+        1:  157:            SAC.Decrement (T_Counts.Busy);
+        -:  158:         end if;
+        1:  159:      end Unbusy;
+        -:  160:
+        -:  161:      ------------
+        -:  162:      -- Unlock --
+        -:  163:      ------------
+        -:  164:
+        3:  165:      procedure Unlock (T_Counts : in out Tamper_Counts) is
+        -:  166:      begin
+        -:  167:         if T_Check then
+        3:  168:            SAC.Decrement (T_Counts.Lock);
+        3:  169:            SAC.Decrement (T_Counts.Busy);
+        -:  170:         end if;
+        3:  171:      end Unlock;
+        -:  172:
+        -:  173:      -----------------
+        -:  174:      -- Zero_Counts --
+        -:  175:      -----------------
+        -:  176:
+        4:  177:      procedure Zero_Counts (T_Counts : out Tamper_Counts) is
+        -:  178:      begin
+        -:  179:         if T_Check then
+        4:  180:            T_Counts := (others => <>);
+        -:  181:         end if;
+        4:  182:      end Zero_Counts;
+        -:  183:
+        -:  184:   end Generic_Implementation;
+        -:  185:
+        -:  186:end Ada.Containers.Helpers;

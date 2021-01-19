@@ -1,0 +1,915 @@
+        -:    0:Source:/usr/lib/gcc/x86_64-linux-gnu/9/adainclude/a-strbou.ads
+        -:    1:------------------------------------------------------------------------------
+        -:    2:--                                                                          --
+        -:    3:--                         GNAT RUN-TIME COMPONENTS                         --
+        -:    4:--                                                                          --
+        -:    5:--                  A D A . S T R I N G S . B O U N D E D                   --
+        -:    6:--                                                                          --
+        -:    7:--                                 S p e c                                  --
+        -:    8:--                                                                          --
+        -:    9:--          Copyright (C) 1992-2019, Free Software Foundation, Inc.         --
+        -:   10:--                                                                          --
+        -:   11:-- This specification is derived from the Ada Reference Manual for use with --
+        -:   12:-- GNAT. The copyright notice above, and the license provisions that follow --
+        -:   13:-- apply solely to the  contents of the part following the private keyword. --
+        -:   14:--                                                                          --
+        -:   15:-- GNAT is free software;  you can  redistribute it  and/or modify it under --
+        -:   16:-- terms of the  GNU General Public License as published  by the Free Soft- --
+        -:   17:-- ware  Foundation;  either version 3,  or (at your option) any later ver- --
+        -:   18:-- sion.  GNAT is distributed in the hope that it will be useful, but WITH- --
+        -:   19:-- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
+        -:   20:-- or FITNESS FOR A PARTICULAR PURPOSE.                                     --
+        -:   21:--                                                                          --
+        -:   22:-- As a special exception under Section 7 of GPL version 3, you are granted --
+        -:   23:-- additional permissions described in the GCC Runtime Library Exception,   --
+        -:   24:-- version 3.1, as published by the Free Software Foundation.               --
+        -:   25:--                                                                          --
+        -:   26:-- You should have received a copy of the GNU General Public License and    --
+        -:   27:-- a copy of the GCC Runtime Library Exception along with this program;     --
+        -:   28:-- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
+        -:   29:-- <http://www.gnu.org/licenses/>.                                          --
+        -:   30:--                                                                          --
+        -:   31:-- GNAT was originally developed  by the GNAT team at  New York University. --
+        -:   32:-- Extensive contributions were provided by Ada Core Technologies Inc.      --
+        -:   33:--                                                                          --
+        -:   34:------------------------------------------------------------------------------
+        -:   35:
+        -:   36:with Ada.Strings.Maps;
+        -:   37:with Ada.Strings.Superbounded;
+        -:   38:
+        -:   39:package Ada.Strings.Bounded is
+        -:   40:   pragma Preelaborate;
+        -:   41:
+        -:   42:   generic
+        -:   43:      Max : Positive;
+        -:   44:      --  Maximum length of a Bounded_String
+        -:   45:
+        -:   46:   package Generic_Bounded_Length is
+        -:   47:
+        -:   48:      Max_Length : constant Positive := Max;
+        -:   49:
+        -:   50:      type Bounded_String is private;
+        -:   51:      pragma Preelaborable_Initialization (Bounded_String);
+        -:   52:
+        -:   53:      Null_Bounded_String : constant Bounded_String;
+        -:   54:
+        -:   55:      subtype Length_Range is Natural range 0 .. Max_Length;
+        -:   56:
+        -:   57:      function Length (Source : Bounded_String) return Length_Range;
+        -:   58:
+        -:   59:      --------------------------------------------------------
+        -:   60:      -- Conversion, Concatenation, and Selection Functions --
+        -:   61:      --------------------------------------------------------
+        -:   62:
+        -:   63:      function To_Bounded_String
+        -:   64:        (Source : String;
+        -:   65:         Drop   : Truncation := Error) return Bounded_String;
+        -:   66:
+        -:   67:      function To_String (Source : Bounded_String) return String;
+        -:   68:
+        -:   69:      procedure Set_Bounded_String
+        -:   70:        (Target : out Bounded_String;
+        -:   71:         Source : String;
+        -:   72:         Drop   : Truncation := Error);
+        -:   73:      pragma Ada_05 (Set_Bounded_String);
+        -:   74:
+        -:   75:      function Append
+        -:   76:        (Left  : Bounded_String;
+        -:   77:         Right : Bounded_String;
+        -:   78:         Drop  : Truncation  := Error) return Bounded_String;
+        -:   79:
+        -:   80:      function Append
+        -:   81:        (Left  : Bounded_String;
+        -:   82:         Right : String;
+        -:   83:         Drop  : Truncation := Error) return Bounded_String;
+        -:   84:
+        -:   85:      function Append
+        -:   86:        (Left  : String;
+        -:   87:         Right : Bounded_String;
+        -:   88:         Drop  : Truncation := Error) return Bounded_String;
+        -:   89:
+        -:   90:      function Append
+        -:   91:        (Left  : Bounded_String;
+        -:   92:         Right : Character;
+        -:   93:         Drop  : Truncation := Error) return Bounded_String;
+        -:   94:
+        -:   95:      function Append
+        -:   96:        (Left  : Character;
+        -:   97:         Right : Bounded_String;
+        -:   98:         Drop  : Truncation := Error) return Bounded_String;
+        -:   99:
+        -:  100:      procedure Append
+        -:  101:        (Source   : in out Bounded_String;
+        -:  102:         New_Item : Bounded_String;
+        -:  103:         Drop     : Truncation  := Error);
+        -:  104:
+        -:  105:      procedure Append
+        -:  106:        (Source   : in out Bounded_String;
+        -:  107:         New_Item : String;
+        -:  108:         Drop     : Truncation  := Error);
+        -:  109:
+        -:  110:      procedure Append
+        -:  111:        (Source   : in out Bounded_String;
+        -:  112:         New_Item : Character;
+        -:  113:         Drop     : Truncation  := Error);
+        -:  114:
+        -:  115:      function "&"
+        -:  116:        (Left  : Bounded_String;
+        -:  117:         Right : Bounded_String) return Bounded_String;
+        -:  118:
+        -:  119:      function "&"
+        -:  120:        (Left  : Bounded_String;
+        -:  121:         Right : String) return Bounded_String;
+        -:  122:
+        -:  123:      function "&"
+        -:  124:        (Left  : String;
+        -:  125:         Right : Bounded_String) return Bounded_String;
+        -:  126:
+        -:  127:      function "&"
+        -:  128:        (Left  : Bounded_String;
+        -:  129:         Right : Character) return Bounded_String;
+        -:  130:
+        -:  131:      function "&"
+        -:  132:        (Left  : Character;
+        -:  133:         Right : Bounded_String) return Bounded_String;
+        -:  134:
+        -:  135:      function Element
+        -:  136:        (Source : Bounded_String;
+        -:  137:         Index  : Positive) return Character;
+        -:  138:
+        -:  139:      procedure Replace_Element
+        -:  140:        (Source : in out Bounded_String;
+        -:  141:         Index  : Positive;
+        -:  142:         By     : Character);
+        -:  143:
+        -:  144:      function Slice
+        -:  145:        (Source : Bounded_String;
+        -:  146:         Low    : Positive;
+        -:  147:         High   : Natural) return String;
+        -:  148:
+        -:  149:      function Bounded_Slice
+        -:  150:        (Source : Bounded_String;
+        -:  151:         Low    : Positive;
+        -:  152:         High   : Natural) return Bounded_String;
+        -:  153:      pragma Ada_05 (Bounded_Slice);
+        -:  154:
+        -:  155:      procedure Bounded_Slice
+        -:  156:        (Source : Bounded_String;
+        -:  157:         Target : out Bounded_String;
+        -:  158:         Low    : Positive;
+        -:  159:         High   : Natural);
+        -:  160:      pragma Ada_05 (Bounded_Slice);
+        -:  161:
+        -:  162:      function "="
+        -:  163:        (Left  : Bounded_String;
+        -:  164:         Right : Bounded_String) return Boolean;
+        -:  165:
+        -:  166:      function "="
+        -:  167:        (Left  : Bounded_String;
+        -:  168:         Right : String) return Boolean;
+        -:  169:
+        -:  170:      function "="
+        -:  171:        (Left  : String;
+        -:  172:         Right : Bounded_String) return Boolean;
+        -:  173:
+        -:  174:      function "<"
+        -:  175:        (Left  : Bounded_String;
+        -:  176:         Right : Bounded_String) return Boolean;
+        -:  177:
+        -:  178:      function "<"
+        -:  179:        (Left  : Bounded_String;
+        -:  180:         Right : String) return Boolean;
+        -:  181:
+        -:  182:      function "<"
+        -:  183:        (Left  : String;
+        -:  184:         Right : Bounded_String) return Boolean;
+        -:  185:
+        -:  186:      function "<="
+        -:  187:        (Left  : Bounded_String;
+        -:  188:         Right : Bounded_String) return Boolean;
+        -:  189:
+        -:  190:      function "<="
+        -:  191:        (Left  : Bounded_String;
+        -:  192:         Right : String) return Boolean;
+        -:  193:
+        -:  194:      function "<="
+        -:  195:        (Left  : String;
+        -:  196:         Right : Bounded_String) return Boolean;
+        -:  197:
+        -:  198:      function ">"
+        -:  199:        (Left  : Bounded_String;
+        -:  200:         Right : Bounded_String) return Boolean;
+        -:  201:
+        -:  202:      function ">"
+        -:  203:        (Left  : Bounded_String;
+        -:  204:         Right : String) return Boolean;
+        -:  205:
+        -:  206:      function ">"
+        -:  207:        (Left  : String;
+        -:  208:         Right : Bounded_String) return Boolean;
+        -:  209:
+        -:  210:      function ">="
+        -:  211:        (Left  : Bounded_String;
+        -:  212:         Right : Bounded_String) return Boolean;
+        -:  213:
+        -:  214:      function ">="
+        -:  215:        (Left  : Bounded_String;
+        -:  216:         Right : String) return Boolean;
+        -:  217:
+        -:  218:      function ">="
+        -:  219:        (Left  : String;
+        -:  220:         Right : Bounded_String) return Boolean;
+        -:  221:
+        -:  222:      ----------------------
+        -:  223:      -- Search Functions --
+        -:  224:      ----------------------
+        -:  225:
+        -:  226:      function Index
+        -:  227:        (Source  : Bounded_String;
+        -:  228:         Pattern : String;
+        -:  229:         Going   : Direction := Forward;
+        -:  230:         Mapping : Maps.Character_Mapping := Maps.Identity) return Natural;
+        -:  231:
+        -:  232:      function Index
+        -:  233:        (Source  : Bounded_String;
+        -:  234:         Pattern : String;
+        -:  235:         Going   : Direction := Forward;
+        -:  236:         Mapping : Maps.Character_Mapping_Function) return Natural;
+        -:  237:
+        -:  238:      function Index
+        -:  239:        (Source : Bounded_String;
+        -:  240:         Set    : Maps.Character_Set;
+        -:  241:         Test   : Membership := Inside;
+        -:  242:         Going  : Direction  := Forward) return Natural;
+        -:  243:
+        -:  244:      function Index
+        -:  245:        (Source  : Bounded_String;
+        -:  246:         Pattern : String;
+        -:  247:         From    : Positive;
+        -:  248:         Going   : Direction := Forward;
+        -:  249:         Mapping : Maps.Character_Mapping := Maps.Identity) return Natural;
+        -:  250:      pragma Ada_05 (Index);
+        -:  251:
+        -:  252:      function Index
+        -:  253:        (Source  : Bounded_String;
+        -:  254:         Pattern : String;
+        -:  255:         From    : Positive;
+        -:  256:         Going   : Direction := Forward;
+        -:  257:         Mapping : Maps.Character_Mapping_Function) return Natural;
+        -:  258:      pragma Ada_05 (Index);
+        -:  259:
+        -:  260:      function Index
+        -:  261:        (Source  : Bounded_String;
+        -:  262:         Set     : Maps.Character_Set;
+        -:  263:         From    : Positive;
+        -:  264:         Test    : Membership := Inside;
+        -:  265:         Going   : Direction := Forward) return Natural;
+        -:  266:      pragma Ada_05 (Index);
+        -:  267:
+        -:  268:      function Index_Non_Blank
+        -:  269:        (Source : Bounded_String;
+        -:  270:         Going  : Direction := Forward) return Natural;
+        -:  271:
+        -:  272:      function Index_Non_Blank
+        -:  273:        (Source : Bounded_String;
+        -:  274:         From   : Positive;
+        -:  275:         Going  : Direction := Forward) return Natural;
+        -:  276:      pragma Ada_05 (Index_Non_Blank);
+        -:  277:
+        -:  278:      function Count
+        -:  279:        (Source  : Bounded_String;
+        -:  280:         Pattern : String;
+        -:  281:         Mapping : Maps.Character_Mapping := Maps.Identity) return Natural;
+        -:  282:
+        -:  283:      function Count
+        -:  284:        (Source  : Bounded_String;
+        -:  285:         Pattern : String;
+        -:  286:         Mapping : Maps.Character_Mapping_Function) return Natural;
+        -:  287:
+        -:  288:      function Count
+        -:  289:        (Source : Bounded_String;
+        -:  290:         Set    : Maps.Character_Set) return Natural;
+        -:  291:
+        -:  292:      procedure Find_Token
+        -:  293:        (Source : Bounded_String;
+        -:  294:         Set    : Maps.Character_Set;
+        -:  295:         From   : Positive;
+        -:  296:         Test   : Membership;
+        -:  297:         First  : out Positive;
+        -:  298:         Last   : out Natural);
+        -:  299:      pragma Ada_2012 (Find_Token);
+        -:  300:
+        -:  301:      procedure Find_Token
+        -:  302:        (Source : Bounded_String;
+        -:  303:         Set    : Maps.Character_Set;
+        -:  304:         Test   : Membership;
+        -:  305:         First  : out Positive;
+        -:  306:         Last   : out Natural);
+        -:  307:
+        -:  308:      ------------------------------------
+        -:  309:      -- String Translation Subprograms --
+        -:  310:      ------------------------------------
+        -:  311:
+        -:  312:      function Translate
+        -:  313:        (Source  : Bounded_String;
+        -:  314:         Mapping : Maps.Character_Mapping) return Bounded_String;
+        -:  315:
+        -:  316:      procedure Translate
+        -:  317:        (Source   : in out Bounded_String;
+        -:  318:         Mapping  : Maps.Character_Mapping);
+        -:  319:
+        -:  320:      function Translate
+        -:  321:        (Source  : Bounded_String;
+        -:  322:         Mapping : Maps.Character_Mapping_Function) return Bounded_String;
+        -:  323:
+        -:  324:      procedure Translate
+        -:  325:        (Source  : in out Bounded_String;
+        -:  326:         Mapping : Maps.Character_Mapping_Function);
+        -:  327:
+        -:  328:      ---------------------------------------
+        -:  329:      -- String Transformation Subprograms --
+        -:  330:      ---------------------------------------
+        -:  331:
+        -:  332:      function Replace_Slice
+        -:  333:        (Source : Bounded_String;
+        -:  334:         Low    : Positive;
+        -:  335:         High   : Natural;
+        -:  336:         By     : String;
+        -:  337:         Drop   : Truncation := Error) return Bounded_String;
+        -:  338:
+        -:  339:      procedure Replace_Slice
+        -:  340:        (Source   : in out Bounded_String;
+        -:  341:         Low      : Positive;
+        -:  342:         High     : Natural;
+        -:  343:         By       : String;
+        -:  344:         Drop     : Truncation := Error);
+        -:  345:
+        -:  346:      function Insert
+        -:  347:        (Source   : Bounded_String;
+        -:  348:         Before   : Positive;
+        -:  349:         New_Item : String;
+        -:  350:         Drop     : Truncation := Error) return Bounded_String;
+        -:  351:
+        -:  352:      procedure Insert
+        -:  353:        (Source   : in out Bounded_String;
+        -:  354:         Before   : Positive;
+        -:  355:         New_Item : String;
+        -:  356:         Drop     : Truncation := Error);
+        -:  357:
+        -:  358:      function Overwrite
+        -:  359:        (Source   : Bounded_String;
+        -:  360:         Position : Positive;
+        -:  361:         New_Item : String;
+        -:  362:         Drop     : Truncation := Error) return Bounded_String;
+        -:  363:
+        -:  364:      procedure Overwrite
+        -:  365:        (Source    : in out Bounded_String;
+        -:  366:         Position  : Positive;
+        -:  367:         New_Item  : String;
+        -:  368:         Drop      : Truncation := Error);
+        -:  369:
+        -:  370:      function Delete
+        -:  371:        (Source  : Bounded_String;
+        -:  372:         From    : Positive;
+        -:  373:         Through : Natural) return Bounded_String;
+        -:  374:
+        -:  375:      procedure Delete
+        -:  376:        (Source  : in out Bounded_String;
+        -:  377:         From    : Positive;
+        -:  378:         Through : Natural);
+        -:  379:
+        -:  380:      ---------------------------------
+        -:  381:      -- String Selector Subprograms --
+        -:  382:      ---------------------------------
+        -:  383:
+        -:  384:      function Trim
+        -:  385:        (Source : Bounded_String;
+        -:  386:         Side   : Trim_End) return Bounded_String;
+        -:  387:
+        -:  388:      procedure Trim
+        -:  389:        (Source : in out Bounded_String;
+        -:  390:         Side   : Trim_End);
+        -:  391:
+        -:  392:      function Trim
+        -:  393:        (Source : Bounded_String;
+        -:  394:         Left   : Maps.Character_Set;
+        -:  395:         Right  : Maps.Character_Set) return Bounded_String;
+        -:  396:
+        -:  397:      procedure Trim
+        -:  398:        (Source : in out Bounded_String;
+        -:  399:         Left   : Maps.Character_Set;
+        -:  400:         Right  : Maps.Character_Set);
+        -:  401:
+        -:  402:      function Head
+        -:  403:        (Source : Bounded_String;
+        -:  404:         Count  : Natural;
+        -:  405:         Pad    : Character := Space;
+        -:  406:         Drop   : Truncation := Error) return Bounded_String;
+        -:  407:
+        -:  408:      procedure Head
+        -:  409:        (Source : in out Bounded_String;
+        -:  410:         Count  : Natural;
+        -:  411:         Pad    : Character  := Space;
+        -:  412:         Drop   : Truncation := Error);
+        -:  413:
+        -:  414:      function Tail
+        -:  415:        (Source : Bounded_String;
+        -:  416:         Count  : Natural;
+        -:  417:         Pad    : Character  := Space;
+        -:  418:         Drop   : Truncation := Error) return Bounded_String;
+        -:  419:
+        -:  420:      procedure Tail
+        -:  421:        (Source : in out Bounded_String;
+        -:  422:         Count  : Natural;
+        -:  423:         Pad    : Character  := Space;
+        -:  424:         Drop   : Truncation := Error);
+        -:  425:
+        -:  426:      ------------------------------------
+        -:  427:      -- String Constructor Subprograms --
+        -:  428:      ------------------------------------
+        -:  429:
+        -:  430:      function "*"
+        -:  431:        (Left  : Natural;
+        -:  432:         Right : Character) return Bounded_String;
+        -:  433:
+        -:  434:      function "*"
+        -:  435:        (Left  : Natural;
+        -:  436:         Right : String) return Bounded_String;
+        -:  437:
+        -:  438:      function "*"
+        -:  439:        (Left  : Natural;
+        -:  440:         Right : Bounded_String) return Bounded_String;
+        -:  441:
+        -:  442:      function Replicate
+        -:  443:        (Count : Natural;
+        -:  444:         Item  : Character;
+        -:  445:         Drop  : Truncation := Error) return Bounded_String;
+        -:  446:
+        -:  447:      function Replicate
+        -:  448:        (Count : Natural;
+        -:  449:         Item  : String;
+        -:  450:         Drop  : Truncation := Error) return Bounded_String;
+        -:  451:
+        -:  452:      function Replicate
+        -:  453:        (Count : Natural;
+        -:  454:         Item  : Bounded_String;
+        -:  455:         Drop  : Truncation := Error) return Bounded_String;
+        -:  456:
+        -:  457:   private
+        -:  458:      --  Most of the implementation is in the separate non generic package
+        -:  459:      --  Ada.Strings.Superbounded. Type Bounded_String is derived from type
+        -:  460:      --  Superbounded.Super_String with the maximum length constraint. In
+        -:  461:      --  almost all cases, the routines in Superbounded can be called with
+        -:  462:      --  no requirement to pass the maximum length explicitly, since there
+        -:  463:      --  is at least one Bounded_String argument from which the maximum
+        -:  464:      --  length can be obtained. For all such routines, the implementation
+        -:  465:      --  in this private part is simply a renaming of the corresponding
+        -:  466:      --  routine in the superbounded package.
+        -:  467:
+        -:  468:      --  The five exceptions are the * and Replicate routines operating on
+        -:  469:      --  character values. For these cases, we have a routine in the body
+        -:  470:      --  that calls the superbounded routine passing the maximum length
+        -:  471:      --  explicitly as an extra parameter.
+        -:  472:
+        -:  473:      type Bounded_String is new Superbounded.Super_String (Max_Length);
+        -:  474:      --  Deriving Bounded_String from Superbounded.Super_String is the
+        -:  475:      --  real trick, it ensures that the type Bounded_String declared in
+        -:  476:      --  the generic instantiation is compatible with the Super_String
+        -:  477:      --  type declared in the Superbounded package.
+        -:  478:
+        -:  479:      function From_String (Source : String) return Bounded_String;
+        -:  480:      --  Private routine used only by Stream_Convert
+        -:  481:
+        -:  482:      pragma Stream_Convert (Bounded_String, From_String, To_String);
+        -:  483:      --  Provide stream routines without dragging in Ada.Streams
+        -:  484:
+        -:  485:      Null_Bounded_String : constant Bounded_String :=
+        -:  486:                              (Max_Length     => Max_Length,
+        -:  487:                               Current_Length => 0,
+        -:  488:                               Data           =>
+        -:  489:                                 (1 .. Max_Length => ASCII.NUL));
+        -:  490:
+        -:  491:      pragma Inline (To_Bounded_String);
+        -:  492:
+    #####:  493:      procedure Set_Bounded_String
+        -:  494:        (Target : out Bounded_String;
+        -:  495:         Source : String;
+        -:  496:         Drop   : Truncation := Error)
+        -:  497:         renames Set_Super_String;
+        -:  498:
+    #####:  499:      function Length
+        -:  500:        (Source : Bounded_String) return Length_Range
+        -:  501:         renames Super_Length;
+        -:  502:
+        1:  503:      function To_String
+        -:  504:        (Source : Bounded_String) return String
+        -:  505:         renames Super_To_String;
+        -:  506:
+    #####:  507:      function Append
+        -:  508:        (Left  : Bounded_String;
+        -:  509:         Right : Bounded_String;
+        -:  510:         Drop  : Truncation  := Error) return Bounded_String
+        -:  511:         renames Super_Append;
+        -:  512:
+    #####:  513:      function Append
+        -:  514:        (Left  : Bounded_String;
+        -:  515:         Right : String;
+        -:  516:         Drop  : Truncation := Error) return Bounded_String
+        -:  517:         renames Super_Append;
+        -:  518:
+    #####:  519:      function Append
+        -:  520:        (Left  : String;
+        -:  521:         Right : Bounded_String;
+        -:  522:         Drop  : Truncation := Error) return Bounded_String
+        -:  523:         renames Super_Append;
+        -:  524:
+    #####:  525:      function Append
+        -:  526:        (Left  : Bounded_String;
+        -:  527:         Right : Character;
+        -:  528:         Drop  : Truncation := Error) return Bounded_String
+        -:  529:         renames Super_Append;
+        -:  530:
+    #####:  531:      function Append
+        -:  532:        (Left  : Character;
+        -:  533:         Right : Bounded_String;
+        -:  534:         Drop  : Truncation := Error) return Bounded_String
+        -:  535:         renames Super_Append;
+        -:  536:
+    #####:  537:      procedure Append
+        -:  538:        (Source   : in out Bounded_String;
+        -:  539:         New_Item : Bounded_String;
+        -:  540:         Drop     : Truncation  := Error)
+        -:  541:         renames Super_Append;
+        -:  542:
+    #####:  543:      procedure Append
+        -:  544:        (Source   : in out Bounded_String;
+        -:  545:         New_Item : String;
+        -:  546:         Drop     : Truncation  := Error)
+        -:  547:         renames Super_Append;
+        -:  548:
+    #####:  549:      procedure Append
+        -:  550:        (Source   : in out Bounded_String;
+        -:  551:         New_Item : Character;
+        -:  552:         Drop     : Truncation  := Error)
+        -:  553:         renames Super_Append;
+        -:  554:
+    #####:  555:      function "&"
+        -:  556:        (Left  : Bounded_String;
+        -:  557:         Right : Bounded_String) return Bounded_String
+        -:  558:         renames Concat;
+        -:  559:
+    #####:  560:      function "&"
+        -:  561:        (Left  : Bounded_String;
+        -:  562:         Right : String) return Bounded_String
+        -:  563:         renames Concat;
+        -:  564:
+    #####:  565:      function "&"
+        -:  566:        (Left  : String;
+        -:  567:         Right : Bounded_String) return Bounded_String
+        -:  568:         renames Concat;
+        -:  569:
+    #####:  570:      function "&"
+        -:  571:        (Left  : Bounded_String;
+        -:  572:         Right : Character) return Bounded_String
+        -:  573:         renames Concat;
+        -:  574:
+    #####:  575:      function "&"
+        -:  576:        (Left  : Character;
+        -:  577:         Right : Bounded_String) return Bounded_String
+        -:  578:         renames Concat;
+        -:  579:
+    #####:  580:      function Element
+        -:  581:        (Source : Bounded_String;
+        -:  582:         Index  : Positive) return Character
+        -:  583:         renames Super_Element;
+        -:  584:
+    #####:  585:      procedure Replace_Element
+        -:  586:        (Source : in out Bounded_String;
+        -:  587:         Index  : Positive;
+        -:  588:         By     : Character)
+        -:  589:         renames Super_Replace_Element;
+        -:  590:
+    #####:  591:      function Slice
+        -:  592:        (Source : Bounded_String;
+        -:  593:         Low    : Positive;
+        -:  594:         High   : Natural) return String
+        -:  595:         renames Super_Slice;
+        -:  596:
+    #####:  597:      function Bounded_Slice
+        -:  598:        (Source : Bounded_String;
+        -:  599:         Low    : Positive;
+        -:  600:         High   : Natural) return Bounded_String
+        -:  601:         renames Super_Slice;
+        -:  602:
+    #####:  603:      procedure Bounded_Slice
+        -:  604:        (Source : Bounded_String;
+        -:  605:         Target : out Bounded_String;
+        -:  606:         Low    : Positive;
+        -:  607:         High   : Natural)
+        -:  608:         renames Super_Slice;
+        -:  609:
+    #####:  610:      overriding function "="
+        -:  611:        (Left  : Bounded_String;
+        -:  612:         Right : Bounded_String) return Boolean
+        -:  613:         renames Equal;
+        -:  614:
+    #####:  615:      function "="
+        -:  616:        (Left  : Bounded_String;
+        -:  617:         Right : String) return Boolean
+        -:  618:         renames Equal;
+        -:  619:
+    #####:  620:      function "="
+        -:  621:        (Left  : String;
+        -:  622:         Right : Bounded_String) return Boolean
+        -:  623:         renames Equal;
+        -:  624:
+    #####:  625:      function "<"
+        -:  626:        (Left  : Bounded_String;
+        -:  627:         Right : Bounded_String) return Boolean
+        -:  628:         renames Less;
+        -:  629:
+    #####:  630:      function "<"
+        -:  631:        (Left  : Bounded_String;
+        -:  632:         Right : String) return Boolean
+        -:  633:         renames Less;
+        -:  634:
+    #####:  635:      function "<"
+        -:  636:        (Left  : String;
+        -:  637:         Right : Bounded_String) return Boolean
+        -:  638:         renames Less;
+        -:  639:
+    #####:  640:      function "<="
+        -:  641:        (Left  : Bounded_String;
+        -:  642:         Right : Bounded_String) return Boolean
+        -:  643:         renames Less_Or_Equal;
+        -:  644:
+    #####:  645:      function "<="
+        -:  646:        (Left  : Bounded_String;
+        -:  647:         Right : String) return Boolean
+        -:  648:         renames Less_Or_Equal;
+        -:  649:
+    #####:  650:      function "<="
+        -:  651:        (Left  : String;
+        -:  652:         Right : Bounded_String) return Boolean
+        -:  653:         renames Less_Or_Equal;
+        -:  654:
+    #####:  655:      function ">"
+        -:  656:        (Left  : Bounded_String;
+        -:  657:         Right : Bounded_String) return Boolean
+        -:  658:         renames Greater;
+        -:  659:
+    #####:  660:      function ">"
+        -:  661:        (Left  : Bounded_String;
+        -:  662:         Right : String) return Boolean
+        -:  663:         renames Greater;
+        -:  664:
+    #####:  665:      function ">"
+        -:  666:        (Left  : String;
+        -:  667:         Right : Bounded_String) return Boolean
+        -:  668:         renames Greater;
+        -:  669:
+    #####:  670:      function ">="
+        -:  671:        (Left  : Bounded_String;
+        -:  672:         Right : Bounded_String) return Boolean
+        -:  673:         renames Greater_Or_Equal;
+        -:  674:
+    #####:  675:      function ">="
+        -:  676:        (Left  : Bounded_String;
+        -:  677:         Right : String) return Boolean
+        -:  678:         renames Greater_Or_Equal;
+        -:  679:
+    #####:  680:      function ">="
+        -:  681:        (Left  : String;
+        -:  682:         Right : Bounded_String) return Boolean
+        -:  683:         renames Greater_Or_Equal;
+        -:  684:
+    #####:  685:      function Index
+        -:  686:        (Source  : Bounded_String;
+        -:  687:         Pattern : String;
+        -:  688:         Going   : Direction := Forward;
+        -:  689:         Mapping : Maps.Character_Mapping := Maps.Identity) return Natural
+        -:  690:         renames Super_Index;
+        -:  691:
+    #####:  692:      function Index
+        -:  693:        (Source  : Bounded_String;
+        -:  694:         Pattern : String;
+        -:  695:         Going   : Direction := Forward;
+        -:  696:         Mapping : Maps.Character_Mapping_Function) return Natural
+        -:  697:         renames Super_Index;
+        -:  698:
+    #####:  699:      function Index
+        -:  700:        (Source : Bounded_String;
+        -:  701:         Set    : Maps.Character_Set;
+        -:  702:         Test   : Membership := Inside;
+        -:  703:         Going  : Direction  := Forward) return Natural
+        -:  704:         renames Super_Index;
+        -:  705:
+    #####:  706:      function Index
+        -:  707:        (Source  : Bounded_String;
+        -:  708:         Pattern : String;
+        -:  709:         From    : Positive;
+        -:  710:         Going   : Direction := Forward;
+        -:  711:         Mapping : Maps.Character_Mapping := Maps.Identity) return Natural
+        -:  712:         renames Super_Index;
+        -:  713:
+    #####:  714:      function Index
+        -:  715:        (Source  : Bounded_String;
+        -:  716:         Pattern : String;
+        -:  717:         From    : Positive;
+        -:  718:         Going   : Direction := Forward;
+        -:  719:         Mapping : Maps.Character_Mapping_Function) return Natural
+        -:  720:      renames Super_Index;
+        -:  721:
+    #####:  722:      function Index
+        -:  723:        (Source  : Bounded_String;
+        -:  724:         Set     : Maps.Character_Set;
+        -:  725:         From    : Positive;
+        -:  726:         Test    : Membership := Inside;
+        -:  727:         Going   : Direction := Forward) return Natural
+        -:  728:      renames Super_Index;
+        -:  729:
+    #####:  730:      function Index_Non_Blank
+        -:  731:        (Source : Bounded_String;
+        -:  732:         Going  : Direction := Forward) return Natural
+        -:  733:         renames Super_Index_Non_Blank;
+        -:  734:
+    #####:  735:      function Index_Non_Blank
+        -:  736:        (Source : Bounded_String;
+        -:  737:         From   : Positive;
+        -:  738:         Going  : Direction := Forward) return Natural
+        -:  739:         renames Super_Index_Non_Blank;
+        -:  740:
+    #####:  741:      function Count
+        -:  742:        (Source  : Bounded_String;
+        -:  743:         Pattern : String;
+        -:  744:         Mapping : Maps.Character_Mapping := Maps.Identity) return Natural
+        -:  745:         renames Super_Count;
+        -:  746:
+    #####:  747:      function Count
+        -:  748:        (Source  : Bounded_String;
+        -:  749:         Pattern : String;
+        -:  750:         Mapping : Maps.Character_Mapping_Function) return Natural
+        -:  751:         renames Super_Count;
+        -:  752:
+    #####:  753:      function Count
+        -:  754:        (Source : Bounded_String;
+        -:  755:         Set    : Maps.Character_Set) return Natural
+        -:  756:         renames Super_Count;
+        -:  757:
+    #####:  758:      procedure Find_Token
+        -:  759:        (Source : Bounded_String;
+        -:  760:         Set    : Maps.Character_Set;
+        -:  761:         From   : Positive;
+        -:  762:         Test   : Membership;
+        -:  763:         First  : out Positive;
+        -:  764:         Last   : out Natural)
+        -:  765:         renames Super_Find_Token;
+        -:  766:
+    #####:  767:      procedure Find_Token
+        -:  768:        (Source : Bounded_String;
+        -:  769:         Set    : Maps.Character_Set;
+        -:  770:         Test   : Membership;
+        -:  771:         First  : out Positive;
+        -:  772:         Last   : out Natural)
+        -:  773:         renames Super_Find_Token;
+        -:  774:
+    #####:  775:      function Translate
+        -:  776:        (Source  : Bounded_String;
+        -:  777:         Mapping : Maps.Character_Mapping) return Bounded_String
+        -:  778:         renames Super_Translate;
+        -:  779:
+    #####:  780:      procedure Translate
+        -:  781:        (Source   : in out Bounded_String;
+        -:  782:         Mapping  : Maps.Character_Mapping)
+        -:  783:         renames Super_Translate;
+        -:  784:
+    #####:  785:      function Translate
+        -:  786:        (Source  : Bounded_String;
+        -:  787:         Mapping : Maps.Character_Mapping_Function) return Bounded_String
+        -:  788:         renames Super_Translate;
+        -:  789:
+    #####:  790:      procedure Translate
+        -:  791:        (Source  : in out Bounded_String;
+        -:  792:         Mapping : Maps.Character_Mapping_Function)
+        -:  793:         renames Super_Translate;
+        -:  794:
+    #####:  795:      function Replace_Slice
+        -:  796:        (Source : Bounded_String;
+        -:  797:         Low    : Positive;
+        -:  798:         High   : Natural;
+        -:  799:         By     : String;
+        -:  800:         Drop   : Truncation := Error) return Bounded_String
+        -:  801:         renames Super_Replace_Slice;
+        -:  802:
+    #####:  803:      procedure Replace_Slice
+        -:  804:        (Source   : in out Bounded_String;
+        -:  805:         Low      : Positive;
+        -:  806:         High     : Natural;
+        -:  807:         By       : String;
+        -:  808:         Drop     : Truncation := Error)
+        -:  809:         renames Super_Replace_Slice;
+        -:  810:
+    #####:  811:      function Insert
+        -:  812:        (Source   : Bounded_String;
+        -:  813:         Before   : Positive;
+        -:  814:         New_Item : String;
+        -:  815:         Drop     : Truncation := Error) return Bounded_String
+        -:  816:         renames Super_Insert;
+        -:  817:
+    #####:  818:      procedure Insert
+        -:  819:        (Source   : in out Bounded_String;
+        -:  820:         Before   : Positive;
+        -:  821:         New_Item : String;
+        -:  822:         Drop     : Truncation := Error)
+        -:  823:         renames Super_Insert;
+        -:  824:
+    #####:  825:      function Overwrite
+        -:  826:        (Source   : Bounded_String;
+        -:  827:         Position : Positive;
+        -:  828:         New_Item : String;
+        -:  829:         Drop     : Truncation := Error) return Bounded_String
+        -:  830:         renames Super_Overwrite;
+        -:  831:
+    #####:  832:      procedure Overwrite
+        -:  833:        (Source    : in out Bounded_String;
+        -:  834:         Position  : Positive;
+        -:  835:         New_Item  : String;
+        -:  836:         Drop      : Truncation := Error)
+        -:  837:         renames Super_Overwrite;
+        -:  838:
+    #####:  839:      function Delete
+        -:  840:        (Source  : Bounded_String;
+        -:  841:         From    : Positive;
+        -:  842:         Through : Natural) return Bounded_String
+        -:  843:         renames Super_Delete;
+        -:  844:
+    #####:  845:      procedure Delete
+        -:  846:        (Source  : in out Bounded_String;
+        -:  847:         From    : Positive;
+        -:  848:         Through : Natural)
+        -:  849:         renames Super_Delete;
+        -:  850:
+    #####:  851:      function Trim
+        -:  852:        (Source : Bounded_String;
+        -:  853:         Side   : Trim_End) return Bounded_String
+        -:  854:         renames Super_Trim;
+        -:  855:
+    #####:  856:      procedure Trim
+        -:  857:        (Source : in out Bounded_String;
+        -:  858:         Side   : Trim_End)
+        -:  859:         renames Super_Trim;
+        -:  860:
+    #####:  861:      function Trim
+        -:  862:        (Source : Bounded_String;
+        -:  863:         Left   : Maps.Character_Set;
+        -:  864:         Right  : Maps.Character_Set) return Bounded_String
+        -:  865:         renames Super_Trim;
+        -:  866:
+    #####:  867:      procedure Trim
+        -:  868:        (Source : in out Bounded_String;
+        -:  869:         Left   : Maps.Character_Set;
+        -:  870:         Right  : Maps.Character_Set)
+        -:  871:         renames Super_Trim;
+        -:  872:
+    #####:  873:      function Head
+        -:  874:        (Source : Bounded_String;
+        -:  875:         Count  : Natural;
+        -:  876:         Pad    : Character := Space;
+        -:  877:         Drop   : Truncation := Error) return Bounded_String
+        -:  878:         renames Super_Head;
+        -:  879:
+    #####:  880:      procedure Head
+        -:  881:        (Source : in out Bounded_String;
+        -:  882:         Count  : Natural;
+        -:  883:         Pad    : Character  := Space;
+        -:  884:         Drop   : Truncation := Error)
+        -:  885:         renames Super_Head;
+        -:  886:
+    #####:  887:      function Tail
+        -:  888:        (Source : Bounded_String;
+        -:  889:         Count  : Natural;
+        -:  890:         Pad    : Character  := Space;
+        -:  891:         Drop   : Truncation := Error) return Bounded_String
+        -:  892:         renames Super_Tail;
+        -:  893:
+    #####:  894:      procedure Tail
+        -:  895:        (Source : in out Bounded_String;
+        -:  896:         Count  : Natural;
+        -:  897:         Pad    : Character  := Space;
+        -:  898:         Drop   : Truncation := Error)
+        -:  899:         renames Super_Tail;
+        -:  900:
+    #####:  901:      function "*"
+        -:  902:        (Left  : Natural;
+        -:  903:         Right : Bounded_String) return Bounded_String
+        -:  904:         renames Times;
+        -:  905:
+    #####:  906:      function Replicate
+        -:  907:        (Count : Natural;
+        -:  908:         Item  : Bounded_String;
+        -:  909:         Drop  : Truncation := Error) return Bounded_String
+        -:  910:         renames Super_Replicate;
+        -:  911:
+        -:  912:   end Generic_Bounded_Length;
+        -:  913:
+        -:  914:end Ada.Strings.Bounded;

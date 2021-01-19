@@ -1,0 +1,107 @@
+        -:    0:Source:/usr/lib/gcc/x86_64-linux-gnu/9/adainclude/a-strbou.adb
+        -:    1:------------------------------------------------------------------------------
+        -:    2:--                                                                          --
+        -:    3:--                         GNAT RUN-TIME COMPONENTS                         --
+        -:    4:--                                                                          --
+        -:    5:--                  A D A . S T R I N G S . B O U N D E D                   --
+        -:    6:--                                                                          --
+        -:    7:--                                 B o d y                                  --
+        -:    8:--                                                                          --
+        -:    9:--          Copyright (C) 1992-2019, Free Software Foundation, Inc.         --
+        -:   10:--                                                                          --
+        -:   11:-- GNAT is free software;  you can  redistribute it  and/or modify it under --
+        -:   12:-- terms of the  GNU General Public License as published  by the Free Soft- --
+        -:   13:-- ware  Foundation;  either version 3,  or (at your option) any later ver- --
+        -:   14:-- sion.  GNAT is distributed in the hope that it will be useful, but WITH- --
+        -:   15:-- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
+        -:   16:-- or FITNESS FOR A PARTICULAR PURPOSE.                                     --
+        -:   17:--                                                                          --
+        -:   18:-- As a special exception under Section 7 of GPL version 3, you are granted --
+        -:   19:-- additional permissions described in the GCC Runtime Library Exception,   --
+        -:   20:-- version 3.1, as published by the Free Software Foundation.               --
+        -:   21:--                                                                          --
+        -:   22:-- You should have received a copy of the GNU General Public License and    --
+        -:   23:-- a copy of the GCC Runtime Library Exception along with this program;     --
+        -:   24:-- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
+        -:   25:-- <http://www.gnu.org/licenses/>.                                          --
+        -:   26:--                                                                          --
+        -:   27:-- GNAT was originally developed  by the GNAT team at  New York University. --
+        -:   28:-- Extensive contributions were provided by Ada Core Technologies Inc.      --
+        -:   29:--                                                                          --
+        -:   30:------------------------------------------------------------------------------
+        -:   31:
+        -:   32:package body Ada.Strings.Bounded is
+        -:   33:
+        -:   34:   package body Generic_Bounded_Length is
+        -:   35:
+        -:   36:      --  The subprograms in this body are those for which there is no
+        -:   37:      --  Bounded_String input, and hence no implicit information on the
+        -:   38:      --  maximum size. This means that the maximum size has to be passed
+        -:   39:      --  explicitly to the routine in Superbounded.
+        -:   40:
+        -:   41:      ---------
+        -:   42:      -- "*" --
+        -:   43:      ---------
+        -:   44:
+    #####:   45:      function "*"
+        -:   46:        (Left  : Natural;
+        -:   47:         Right : Character) return Bounded_String
+        -:   48:      is
+        -:   49:      begin
+    #####:   50:         return Times (Left, Right, Max_Length);
+        -:   51:      end "*";
+        -:   52:
+    #####:   53:      function "*"
+        -:   54:        (Left  : Natural;
+        -:   55:         Right : String) return Bounded_String
+        -:   56:      is
+        -:   57:      begin
+    #####:   58:         return Times (Left, Right, Max_Length);
+        -:   59:      end "*";
+        -:   60:
+        -:   61:      -----------------
+        -:   62:      -- From_String --
+        -:   63:      -----------------
+        -:   64:
+    #####:   65:      function From_String (Source : String) return Bounded_String is
+        -:   66:      begin
+    #####:   67:         return To_Super_String (Source, Max_Length, Error);
+        -:   68:      end From_String;
+        -:   69:
+        -:   70:      ---------------
+        -:   71:      -- Replicate --
+        -:   72:      ---------------
+        -:   73:
+    #####:   74:      function Replicate
+        -:   75:        (Count : Natural;
+        -:   76:         Item  : Character;
+        -:   77:         Drop  : Strings.Truncation := Strings.Error) return Bounded_String
+        -:   78:      is
+        -:   79:      begin
+    #####:   80:         return Super_Replicate (Count, Item, Drop, Max_Length);
+        -:   81:      end Replicate;
+        -:   82:
+    #####:   83:      function Replicate
+        -:   84:        (Count : Natural;
+        -:   85:         Item  : String;
+        -:   86:         Drop  : Strings.Truncation := Strings.Error) return Bounded_String
+        -:   87:      is
+        -:   88:      begin
+    #####:   89:         return Super_Replicate (Count, Item, Drop, Max_Length);
+        -:   90:      end Replicate;
+        -:   91:
+        -:   92:      -----------------------
+        -:   93:      -- To_Bounded_String --
+        -:   94:      -----------------------
+        -:   95:
+        1:   96:      function To_Bounded_String
+        -:   97:        (Source : String;
+        -:   98:         Drop   : Strings.Truncation := Strings.Error) return Bounded_String
+        -:   99:      is
+        -:  100:      begin
+        3:  101:         return To_Super_String (Source, Max_Length, Drop);
+        -:  102:      end To_Bounded_String;
+        -:  103:
+        -:  104:   end Generic_Bounded_Length;
+        -:  105:
+        -:  106:end Ada.Strings.Bounded;
