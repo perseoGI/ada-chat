@@ -1,3 +1,4 @@
+PROFILE_FLAGS := -f -cargs -fprofile-arcs -ftest-coverage -largs -fprofile-arcs
 
 prepare:
 	mkdir obj

@@ -1,11 +1,15 @@
 with Ada.Text_IO;
 with Ada.Numerics.Big_Numbers.Big_Integers;
+with Types;
+with Randomizer;
 
 package body DiffieHellman is
     use Ada.Text_IO;
     use Ada.Numerics.Big_Numbers.Big_Integers;
+    use Types;
     --package Unsigned_64_IO is new Ada.Text_IO.modular_io(Unsigned_64);
     -- Function to compute a^m mod n
+    -- TODO this could return a 0 value. Check!!!
     function Compute (Base, Exp, Modulus : U64) return U64 is
         R: U64;
         Y: U64 := 1;
@@ -23,16 +27,37 @@ package body DiffieHellman is
             M := M/2;
         end loop;
 
+        Put("Public generated for Diffie-Hellman: "); Unsigned_64_IO.Put(Y); Put_Line("");
         return Y;
 
     end Compute;
 
 
-    function CifferStr (Str: String; Key: U64) return U64 is
-        begin
+    procedure Generate_Modulus_And_Base (Modulus: out U64; Base: out U64) is
 
-        return 0;
-    end CifferStr;
+    begin
+        Base := Randomizer.Generate_Rand_U64;
+        -- TODO modulus should be a big random prime number
+        Modulus := Randomizer.Generate_Rand_U64;
+
+        Put("Base generated for Diffie-Hellman: "); Unsigned_64_IO.Put(Base); Put_Line("");
+        Put("Modululs generated for Diffie-Hellman: "); Unsigned_64_IO.Put(Modulus); Put_Line("");
+
+    end Generate_Modulus_And_Base;
+
+    function Generate_Secret return U64 is
+        Secret_Number: U64;
+
+    begin
+        -- TODO modulus should be a big random prime number
+        Secret_Number := Randomizer.Generate_Rand_U64;
+
+        Put("Secret generated for Diffie-Hellman: "); Unsigned_64_IO.Put(Secret_Number); Put_Line("");
+
+        return Secret_Number;
+
+    end Generate_Secret;
+
 
 
     procedure Test is

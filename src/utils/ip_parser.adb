@@ -15,7 +15,7 @@ use Ada.Text_IO,
     Ada.Strings.Unbounded,
 	Ada.Strings.Unbounded.Text_IO;
 
-package body Utils is
+package body IP_Parser is
 
 	package String_Vectors is new Indefinite_Vectors (Positive, String);
 	use String_Vectors;
@@ -109,4 +109,4 @@ package body Utils is
 
 	end Is_String_IpV4_Test;
 
-end Utils;
+end IP_Parser;

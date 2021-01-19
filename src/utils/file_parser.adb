@@ -1,5 +1,5 @@
 with Ada.Text_IO;
-with Utils;
+with Ip_Parser;
 with Ada.Exceptions;
 with Exceptions;
 
@@ -31,7 +31,7 @@ package body File_Parser is
             begin
                 case I is
                     when 1 =>
-                        Assert := utils.Is_String_IpV4(Line);
+                        Assert := Ip_Parser.Is_String_IpV4(Line);
                         if Assert = True then
                             Ip_Dest := To_Bounded_String(Line);
                         else
