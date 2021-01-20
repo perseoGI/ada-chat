@@ -1,10 +1,12 @@
 with Ada.Text_IO;
 with Types;
 with Randomizer;
+with Exceptions;
 
 package body DiffieHellman is
     use Ada.Text_IO;
     use Types;
+    use Exceptions;
     --package Unsigned_64_IO is new Ada.Text_IO.modular_io(Unsigned_64);
     -- Function to compute a^m mod n
     -- TODO this could return a 0 value. Check!!!
@@ -25,7 +27,6 @@ package body DiffieHellman is
             M := M/2;
         end loop;
 
-        Put("Public generated for Diffie-Hellman: "); Unsigned_64_IO.Put(Y); Put_Line("");
         return Y;
 
     end Compute;
@@ -38,8 +39,6 @@ package body DiffieHellman is
         -- TODO modulus should be a big random prime number
         Modulus := Randomizer.Generate_Rand_U64;
 
-        Put("Base generated for Diffie-Hellman: "); Unsigned_64_IO.Put(Base); Put_Line("");
-        Put("Modululs generated for Diffie-Hellman: "); Unsigned_64_IO.Put(Modulus); Put_Line("");
 
     end Generate_Modulus_And_Base;
 
@@ -50,13 +49,37 @@ package body DiffieHellman is
         -- TODO modulus should be a big random prime number
         Secret_Number := Randomizer.Generate_Rand_U64;
 
-        Put("Secret generated for Diffie-Hellman: "); Unsigned_64_IO.Put(Secret_Number); Put_Line("");
-
         return Secret_Number;
 
     end Generate_Secret;
 
 
+    function Create_Crypto_Payload (Secret: out U64) return Crypto_Payload is
+        Payload: Crypto_Payload;
+        Base: U64;
+        Modulus: U64;
+        Number_Tries: Positive := 1;
+    begin
+        while Number_Tries < 50 loop
+            Generate_Modulus_And_Base(Modulus => Modulus, Base => Base);
+            Payload.Base := Base;
+            Payload.Modulus := Modulus;
+            Secret := Generate_Secret;
+            Payload.Public := Compute(Base => Base, Exp => Secret, Modulus => Modulus);
+
+            if Payload.Public /= 0 then
+                Put("Base generated for Diffie-Hellman: "); Unsigned_64_IO.Put(Base); Put_Line("");
+                Put("Modululs generated for Diffie-Hellman: "); Unsigned_64_IO.Put(Modulus); Put_Line("");
+                Put("Secret generated for Diffie-Hellman: "); Unsigned_64_IO.Put(Secret); Put_Line("");
+                Put("Public generated for Diffie-Hellman: "); Unsigned_64_IO.Put(Payload.Public); Put_Line("");
+                return Payload;
+            end if;
+            Number_Tries := Number_Tries + 1;
+        end loop;
+
+        raise Diffie_Hellman_Exception with "No secure Base and Modulus keys were generated after 50 tries";
+
+    end Create_Crypto_Payload;
 
     procedure Test is
         P: U64 := 12207031;  -- modulus

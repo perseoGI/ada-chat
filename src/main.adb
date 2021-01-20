@@ -7,6 +7,7 @@ with Ada.Exceptions;
 with Types;
 with Cli;
 with Connections;
+with PingPong;
 
 procedure Main is
     use Ada.Text_IO;
@@ -27,12 +28,11 @@ procedure Main is
 
     Ip_Dest : IPv4.Bounded_String;
     Port_Dest, Port_Src: Positive; --  TODO make Port type
-    Modulus: U64;
-    Base: U64;
     Diffie_Hellman_Secret: U64;
-    Diffie_Hellman_Public: U64;
 
     Connection: Connections.Object;
+    Source_Crypto_Payload: Crypto_Payload;
+    Dest_Crypto_Payload: Crypto_Payload;
 begin
     -- 1. Read and parse configuration file
     Parse_Config_File(Ip_Dest => Ip_Dest, Port_Dest => Port_Dest, Port_Src => Port_Src);
@@ -46,23 +46,12 @@ begin
                     Port_Org => Port(Port_Src));
 
 
-    Put_Line("Antes DH");
     -- 3. Generate cipher keys
     --  3.1. Diffie Hellman secret generation
-    DiffieHellman.Generate_Modulus_And_Base(Modulus => Modulus, Base => Base);
-    Diffie_Hellman_Secret := DiffieHellman.Generate_Secret;
-    Diffie_Hellman_Public := DiffieHellman.Compute(Base => Base, Exp => Diffie_Hellman_Secret, Modulus => Modulus);
+    Source_Crypto_Payload := DiffieHellman.Create_Crypto_Payload(Secret => Diffie_Hellman_Secret);
 
+    --Connection.Inerchange_Cryptos(Packet => Source_Crypto_Payload);
 
-
-    Put_Line("Before read");
-    Connection.Read;
-    Put_Line("After read");
-    Put_Line("Antes send");
-    Connection.Send("Hola");
-    Put_Line("After Sended");
-
-    Connection.Finish;
 
     --  3.2. Interchange Modulus, Base and public secret
     --  TODO
@@ -71,7 +60,7 @@ begin
 
     --Cli.User_Interface_Controller;
 exception
-    when E: File_Parser_Exception =>
+    when E: Others =>
         Put_Line(Exception_Message(E));
         return;
 
