@@ -1,6 +1,6 @@
 with Ada.Text_IO;
 with RC4;
-with DiffieHellman;
+with Diffie_Hellman;
 with File_Parser;
 with Exceptions;
 with Ada.Exceptions;
@@ -8,6 +8,12 @@ with Types;
 with Cli;
 with Connections;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with GNAT;
+with GNAT.Formatted_String;
+with Interfaces;
+
+with Ada.Streams;
+with Ada.Streams.Stream_IO;
 
 procedure Main is
    use Ada.Text_IO;
@@ -16,7 +22,8 @@ procedure Main is
    use File_Parser;
    use Types;
    use Connections;
-
+ use Ada.Streams;
+use Ada.Streams.Stream_IO;
    -- 1. Read and parse configuration file 2. Open server and client socket and
    -- wait until connection is stablished 3. Generate cipher keys
    --  3.1. Diffie Hellman secret generation 3.2. Interchange Modulus, Base and
@@ -30,6 +37,27 @@ procedure Main is
    Source_Crypto_Payload: Crypto_Payload;
    Dest_Crypto_Payload: Crypto_Payload;
    Connection : Connections.Object;
+
+
+   function Crypto_Payload_To_Bytes(Input: Crypto_Payload) return Byte_Array is
+      Result : Constant Record_Bytes;
+      For Result'Address use Input'Address;
+      Pragma Import( Convention => Ada, Entity => Result );
+   begin
+      Return Result;
+
+   end Crypto_Payload_To_Bytes;
+
+   -- Converting bytes to record... in Ada 2012!
+   Function Bytes_To_Crypto_Payload( Input : Record_Bytes ) return Crypto_Payload is
+      Result : Crypto_Payload with
+      Import, Convention => Ada, Address => Input'Address;
+   begin
+      Return Result;
+   end Bytes_To_Crypto_Payload;
+
+   Crypto_Payload_Bytes: Record_Bytes;
+   Test: Crypto_Payload;
 
 begin
    -- 1. Read and parse configuration file
@@ -56,10 +84,25 @@ begin
 
    -- 3. Generate cipher keys
    --  3.1. Diffie Hellman secret generation
-   Source_Crypto_Payload := DiffieHellman.Create_Crypto_Payload(Secret => Diffie_Hellman_Secret);
+   Source_Crypto_Payload := Diffie_Hellman.Create_Crypto_Payload(Secret => Diffie_Hellman_Secret);
 
    --Connection.Inerchange_Cryptos(Packet => Source_Crypto_Payload);
 
+   Crypto_Payload_Bytes := Crypto_Payload_To_Bytes(Source_Crypto_Payload);
+   --Put_Line(Byte'Image(Crypto_Payload_Bytes));
+
+   -- Print the Array As Bytes
+   for I in Crypto_Payload_Bytes'Range loop
+      Ada.Text_Io.Put (Byte'Image (Crypto_Payload_Bytes(I)));
+   end loop;
+
+
+   Test := Bytes_To_Crypto_Payload(Crypto_Payload_Bytes);
+   Put("Secret generated for Diffie-Hellman: "); Unsigned_64_IO.Put(Test.Base); Put_Line("");
+   --Byte'Output(Stream(Standard_Output), Crypto_Payload_Bytes(1));
+   --Byte'Output(Stream(Standard_Output), Crypto_Payload_Bytes(1));
+
+   --Put_Line(Crypto_Payload_To_String(Source_Crypto_Payload));
 
    --  3.2. Interchange Modulus, Base and public secret
    --  TODO

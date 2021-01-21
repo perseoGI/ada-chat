@@ -1,6 +1,11 @@
 with Ada.Strings.Bounded;
+with Ada.Text_IO;
+with Interfaces;
 package Types is
+
     type U64 is mod 2 ** 64;
+
+    package Unsigned_64_IO is new Ada.Text_IO.modular_io(U64);
 
     type Message_Size is range 1..512;
 
@@ -24,5 +29,12 @@ package Types is
 		Content: Content_String.Bounded_String;
 	end record;
 
+   -- Subtype-renaming.
+   Subtype Byte is Interfaces.Unsigned_8;
+   -- General type for conversion to a collection of bytes.
+   Type Byte_Array is Array (Positive Range <>) of Byte;
+   -- Speciffic collection of bytes from The_Record.
+   -- TODO
+   Subtype Record_Bytes is Byte_Array(1..Crypto_Payload'Size/Byte'Size);
 
 end Types;

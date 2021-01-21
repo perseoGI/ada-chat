@@ -3,7 +3,7 @@ with Types;
 with Randomizer;
 with Exceptions;
 
-package body DiffieHellman is
+package body Diffie_Hellman is
     use Ada.Text_IO;
     use Types;
     use Exceptions;
@@ -131,5 +131,5 @@ package body DiffieHellman is
 
     end Test;
 
-end DiffieHellman;
+end Diffie_Hellman;
 
