@@ -1,6 +1,7 @@
 with GNAT.Sockets; use GNAT.Sockets;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Types; use Types;
 
 package Connections is
    --typedefs
@@ -25,8 +26,19 @@ package Connections is
       entry Join;
    end Connection_Send;
 
+   task Connection_Send_Bytes is
+      entry What (This_p : in out Object; Input_Bytes : in Byte_Array);
+      entry Join;
+   end Connection_Send_Bytes;
+
    task Connection_Read is
       entry Start(This_p : in out Object);
       entry Join;
    end Connection_Read;
+
+   task Connection_Read_Bytes is
+      entry Start(This_p : in out Object);
+      entry Join;
+   end Connection_Read_Bytes;
+
 end Connections;

@@ -22,8 +22,8 @@ procedure Main is
    use File_Parser;
    use Types;
    use Connections;
- use Ada.Streams;
-use Ada.Streams.Stream_IO;
+   use Ada.Streams;
+   use Ada.Streams.Stream_IO;
    -- 1. Read and parse configuration file 2. Open server and client socket and
    -- wait until connection is stablished 3. Generate cipher keys
    --  3.1. Diffie Hellman secret generation 3.2. Interchange Modulus, Base and
@@ -39,24 +39,8 @@ use Ada.Streams.Stream_IO;
    Connection : Connections.Object;
 
 
-   function Crypto_Payload_To_Bytes(Input: Crypto_Payload) return Byte_Array is
-      Result : Constant Record_Bytes;
-      For Result'Address use Input'Address;
-      Pragma Import( Convention => Ada, Entity => Result );
-   begin
-      Return Result;
 
-   end Crypto_Payload_To_Bytes;
-
-   -- Converting bytes to record... in Ada 2012!
-   Function Bytes_To_Crypto_Payload( Input : Record_Bytes ) return Crypto_Payload is
-      Result : Crypto_Payload with
-      Import, Convention => Ada, Address => Input'Address;
-   begin
-      Return Result;
-   end Bytes_To_Crypto_Payload;
-
-   Crypto_Payload_Bytes: Record_Bytes;
+   Crypto_Payload_Bytes_Var: Crypto_Payload_Bytes;
    Test: Crypto_Payload;
 
 begin
@@ -72,15 +56,15 @@ begin
       (Addr_Dst => "127.0.0.1", Port_Dst => Port (Port_Dest),
    Port_Org => Port (Port_Src));
 
-   Connections.Connection_Read.Start(Connection);
-   Connections.Connection_Send.What(Connection,"BBBBBBBBBBB");
-   Connections.Connection_Read.Join;
-   Connections.Connection_Send.Join;
-   Connections.Connection_Read.Start(Connection);
-   Connections.Connection_Send.What(Connection,"BBBBBBBBBBB");
-   Connections.Connection_Read.Join;
-   Connections.Connection_Send.Join;
-   Connection.Finish;
+   --Connections.Connection_Read.Start(Connection);
+   --Connections.Connection_Send.What(Connection,"BBBBBBBBBBB");
+   --Connections.Connection_Read.Join;
+   --Connections.Connection_Send.Join;
+   --Connections.Connection_Read.Start(Connection);
+   --Connections.Connection_Send.What(Connection,"BBBBBBBBBBB");
+   --Connections.Connection_Read.Join;
+   --Connections.Connection_Send.Join;
+   --Connection.Finish;
 
    -- 3. Generate cipher keys
    --  3.1. Diffie Hellman secret generation
@@ -88,21 +72,25 @@ begin
 
    --Connection.Inerchange_Cryptos(Packet => Source_Crypto_Payload);
 
-   Crypto_Payload_Bytes := Crypto_Payload_To_Bytes(Source_Crypto_Payload);
+   Crypto_Payload_Bytes_Var := Crypto_Payload_To_Bytes(Source_Crypto_Payload);
    --Put_Line(Byte'Image(Crypto_Payload_Bytes));
 
    -- Print the Array As Bytes
-   for I in Crypto_Payload_Bytes'Range loop
-      Ada.Text_Io.Put (Byte'Image (Crypto_Payload_Bytes(I)));
+   for I in Crypto_Payload_Bytes_Var'Range loop
+      Ada.Text_Io.Put (Byte'Image (Crypto_Payload_Bytes_Var(I)));
    end loop;
 
 
-   Test := Bytes_To_Crypto_Payload(Crypto_Payload_Bytes);
+   Test := Bytes_To_Crypto_Payload(Crypto_Payload_Bytes_Var);
    Put("Secret generated for Diffie-Hellman: "); Unsigned_64_IO.Put(Test.Base); Put_Line("");
-   --Byte'Output(Stream(Standard_Output), Crypto_Payload_Bytes(1));
-   --Byte'Output(Stream(Standard_Output), Crypto_Payload_Bytes(1));
 
-   --Put_Line(Crypto_Payload_To_String(Source_Crypto_Payload));
+   Put_Line("TEST =============");
+   Connections.Connection_Read_Bytes.Start(Connection);
+   Connections.Connection_Send_Bytes.What(Connection, Crypto_Payload_Bytes_Var);
+   Connections.Connection_Read_Bytes.Join;
+   Connections.Connection_Send_Bytes.Join;
+   Connection.Finish;
+
 
    --  3.2. Interchange Modulus, Base and public secret
    --  TODO

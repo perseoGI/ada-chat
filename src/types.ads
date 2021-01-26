@@ -35,6 +35,12 @@ package Types is
    Type Byte_Array is Array (Positive Range <>) of Byte;
    -- Speciffic collection of bytes from The_Record.
    -- TODO
-   Subtype Record_Bytes is Byte_Array(1..Crypto_Payload'Size/Byte'Size);
+   Subtype Crypto_Payload_Bytes is Byte_Array(1..Crypto_Payload'Size/Byte'Size);
+
+   function Crypto_Payload_To_Bytes(Input: Crypto_Payload) return Byte_Array;
+   -- Converting bytes to record... in Ada 2012!
+   Function Bytes_To_Crypto_Payload( Input : Crypto_Payload_Bytes ) return Crypto_Payload;
+
+   Procedure Print_Crypto_Payload (Crypto : in Crypto_Payload);
 
 end Types;
