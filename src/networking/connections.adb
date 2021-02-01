@@ -1,9 +1,11 @@
 with Ada.Streams;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Types; use Types;
+with Packet_Queue;
 
 package body Connections is
    use Ada.Streams;
+   use Packet_Queue;
 
    ----------
    -- Init --
@@ -139,7 +141,7 @@ package body Connections is
 
    task body Connection_Read_Bytes is
       This : Object;
-      Received_Bytes: Byte_Array(1..100);
+      --Received_Bytes: Byte_Array(1..100);
    begin
       loop
          select

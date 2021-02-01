@@ -14,6 +14,7 @@ with Interfaces;
 
 with Ada.Streams;
 with Ada.Streams.Stream_IO;
+with Packet_Queue;
 
 procedure Main is
    use Ada.Text_IO;
@@ -24,6 +25,7 @@ procedure Main is
    use Connections;
    use Ada.Streams;
    use Ada.Streams.Stream_IO;
+   use Packet_Queue;
    -- 1. Read and parse configuration file 2. Open server and client socket and
    -- wait until connection is stablished 3. Generate cipher keys
    --  3.1. Diffie Hellman secret generation 3.2. Interchange Modulus, Base and
@@ -35,13 +37,18 @@ procedure Main is
    Port_Dest, Port_Src: Positive; --  TODO make Port type
    Diffie_Hellman_Secret: U64;
    Source_Crypto_Payload: Crypto_Payload;
-   Dest_Crypto_Payload: Crypto_Payload;
+   --Dest_Crypto_Payload: Crypto_Payload;
    Connection : Connections.Object;
 
 
 
    Crypto_Payload_Bytes_Var: Crypto_Payload_Bytes;
    Test: Crypto_Payload;
+
+   Messages_Queue : Packets_Queue;
+   Packet_Example : Packet;
+   Packet_Example_Read : Packet;
+
 
 begin
    -- 1. Read and parse configuration file
@@ -91,6 +98,12 @@ begin
    Connections.Connection_Send_Bytes.Join;
    Connection.Finish;
 
+
+   Put_Line("========== Queue tests =============");
+   Packet_Example.Packet_Type := Crypto;
+   Packet_Example.Content_Size := Crypto_Payload_Bytes'Size;
+   Messages_Queue.Enqueue_Packet(Packet_Example);
+   --Packet_Example_Read := Messages_Queue.Dequeue_Packet;
 
    --  3.2. Interchange Modulus, Base and public secret
    --  TODO

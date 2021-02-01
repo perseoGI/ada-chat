@@ -26,7 +26,7 @@ package Types is
         Packet_Type: Packet_Payload_Type;
         Content_Size: Message_Size;
         --Date_Send:  TODO
-		Content: Content_String.Bounded_String;
+        Content: Content_String.Bounded_String;
 	end record;
 
    -- Subtype-renaming.
